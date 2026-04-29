@@ -32,10 +32,11 @@ export default function CourseDetailPage() {
   const [enroll, { isLoading: enrolling }] = useEnrollMutation();
 
   const course = courseData?.data?.course || courseData?.data || null;
-  const enrollments = enrollmentsData?.data?.enrollments || enrollmentsData?.data || [];
-  const isEnrolled = enrollments.some(
-    (e) => (e.course?._id || e.course) === courseId
-  );
+  const enrollments = enrollmentsData?.data?.enrollments || enrollmentsData?.data || enrollmentsData || [];
+  const isEnrolled = enrollments.some((e) => {
+    const cId = typeof e.course === 'object' ? e.course?._id : e.course;
+    return String(cId) === String(courseId) && e.status !== 'dropped';
+  });
   const fullDetail = fullDetailData?.data || null;
   const lessons = fullDetail?.lessons || [];
   const quizzes = quizzesData?.data?.quizzes || quizzesData?.data || [];

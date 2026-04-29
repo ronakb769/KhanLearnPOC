@@ -33,7 +33,13 @@ const StudentLesson = () => {
     try {
       await completeLesson(lessonId).unwrap()
       showToast(isLastLesson ? 'Course complete! Great job!' : 'Lesson marked as complete!', 'success')
-      setTimeout(() => navigate('/student/dashboard'), 1200)
+      setTimeout(() => {
+        if (isLastLesson) {
+          navigate('/student/dashboard')
+        } else if (nextLesson) {
+          navigate(`/student/courses/${courseId}/lessons/${nextLesson._id}`)
+        }
+      }, 1200)
     } catch (err) {
       showToast(err?.data?.message || 'Failed to mark complete', 'danger')
     }

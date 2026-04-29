@@ -25,7 +25,7 @@ const statusVariant = {
 
 const TeacherDashboard = () => {
   const { data, isLoading, isError } = useGetMyCoursesQuery()
-  const courses = data?.courses || data || []
+  const courses = data?.data?.courses || data?.courses || []
 
   const totalCourses = courses.length
   const totalStudents = courses.reduce((sum, c) => sum + (c.enrollmentCount || 0), 0)

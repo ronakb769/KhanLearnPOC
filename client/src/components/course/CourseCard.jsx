@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom'
 import { getCategoryBadgeClass, formatDuration } from '../../utils/formatters'
 
 const CourseCard = ({ course, isEnrolled, onEnroll }) => {
+ 
+  
   const thumb = course.thumbnail || `https://picsum.photos/seed/${course._id}/800/450`
   return (
     <div className="card course-card border-0 shadow-sm h-100">
