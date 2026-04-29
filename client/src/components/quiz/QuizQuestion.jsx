@@ -1,7 +1,9 @@
 const QuizQuestion = ({ question, selectedOptionId, onSelect, questionNumber, totalQuestions, isReview = false, correctOptionId, userAnswerOptionId }) => {
+ 
+  
   const progress = Math.round((questionNumber / totalQuestions) * 100)
   return (
-    <div className="card border-0 shadow" style={{ maxWidth: 680, margin: '0 auto' }}>
+    <div className="card border-0 shadow" style={{ minWidth: 680, margin: '0 auto' }}>
       <div className="card-header bg-white border-0 pt-4 px-4 pb-2">
         <div className="d-flex justify-content-between align-items-center mb-2">
           <span className="text-muted small fw-semibold">Question {questionNumber} of {totalQuestions}</span>
@@ -12,7 +14,7 @@ const QuizQuestion = ({ question, selectedOptionId, onSelect, questionNumber, to
         </div>
       </div>
       <div className="card-body px-4 pb-4">
-        <h5 className="fw-semibold mb-4" style={{ lineHeight: 1.5 }}>{question.questionText}</h5>
+        <h5 className="fw-semibold mb-4" style={{ lineHeight: 1.5 }}>{question?.questionText}</h5>
         <div className="d-flex flex-column gap-2">
           {(question.options || []).map((option) => {
             let cls = 'option-card p-3 rounded-3'

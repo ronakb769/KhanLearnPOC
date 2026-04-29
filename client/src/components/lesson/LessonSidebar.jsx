@@ -2,7 +2,8 @@ import { Link, useLocation } from 'react-router-dom'
 import CourseProgressBar from '../course/CourseProgressBar'
 import { useGetQuizzesByCourseQuery } from '../../services/quizApi'
 
-const LessonSidebar = ({ lessons = [], currentLessonId, completedLessons = [], courseId, percentComplete = 0 }) => {
+const LessonSidebar = ({ lessons = [], currentLessonId, completedLessons = [], courseId, percentComplete = 0}) => {
+  
   const completedIds = completedLessons.map((l) => (typeof l === 'object' ? l._id?.toString() : l?.toString()))
   const { data: quizzesData } = useGetQuizzesByCourseQuery(courseId, { skip: !courseId })
   const quizzes = quizzesData?.data?.quizzes || quizzesData?.data || quizzesData || []

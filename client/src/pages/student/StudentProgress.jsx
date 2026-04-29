@@ -7,15 +7,17 @@ import EmptyState from '../../components/common/EmptyState'
 const StudentProgress = () => {
   const { data: overviewData, isLoading: overviewLoading } = useGetProgressOverviewQuery()
   const { data: enrollData, isLoading: enrollLoading } = useGetMyEnrollmentsQuery()
-
-  const overview = overviewData?.data || overviewData || {}
-  const enrollments = enrollData?.data?.enrollments || enrollData?.data || []
+  
+  const overviewArray = overviewData?.data?.overview || []
+  const enrollments = enrollData?.data?.enrollments || []
 
   if (overviewLoading || enrollLoading) return <Loader />
 
-  const totalLessons = overview.totalLessons ?? 0
-  const completedLessons = overview.completedLessons ?? 0
-  const avgProgress = overview.averageProgress ?? 0
+  const totalLessons = overviewArray.reduce((acc, p) => acc + (p.totalLessons || 0), 0)
+  const completedLessons = overviewArray.reduce((acc, p) => acc + (p.completedLessons?.length || 0), 0)
+  const avgProgress = overviewArray.length > 0 
+    ? overviewArray.reduce((acc, p) => acc + (p.percentComplete || 0), 0) / overviewArray.length 
+    : 0
 
   return (
     <div>
@@ -67,7 +69,7 @@ const StudentProgress = () => {
                   {enrollments.map((enrollment) => {
                     const course = enrollment.course || {}
                     const progress = enrollment.progressPercent ?? 0
-                    const completed = enrollment.completed
+                    const completed = enrollment.status === 'completed'
                     return (
                       <tr key={enrollment._id}>
                         <td className="fw-semibold">{course.title}</td>

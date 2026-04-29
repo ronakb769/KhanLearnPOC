@@ -10,13 +10,16 @@ const StudentDashboard = () => {
   const { data: enrollData, isLoading: enrollLoading } = useGetMyEnrollmentsQuery()
   const { data: progressData, isLoading: progressLoading } = useGetProgressOverviewQuery()
 
-  const enrollments = enrollData?.data?.enrollments || enrollData?.data || []
-  const overview = progressData?.data || progressData || {}
+  
+  const enrollments = enrollData?.data?.enrollments || []
+  const overviewArray = progressData?.data?.overview || []
 
   const totalCourses = enrollments.length
-  const completedCourses = enrollments.filter((e) => e.completed).length
+  const completedCourses = enrollments.filter((e) => e.status === 'completed').length
   const inProgress = totalCourses - completedCourses
-  const avgProgress = overview.averageProgress ?? 0
+  const avgProgress = overviewArray.length > 0 
+    ? overviewArray.reduce((acc, p) => acc + (p.percentComplete || 0), 0) / overviewArray.length 
+    : 0
 
   if (enrollLoading || progressLoading) return <Loader />
 

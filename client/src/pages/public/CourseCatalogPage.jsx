@@ -46,11 +46,11 @@ export default function CourseCatalogPage() {
   });
   const [enroll] = useEnrollMutation();
 
-  const courses = coursesData?.data?.courses || coursesData?.data || [];
+  const courses = coursesData?.data?.courses || [];
   const total = coursesData?.data?.total || courses.length;
   const totalPages = coursesData?.data?.totalPages || Math.ceil(total / filters.limit);
 
-  const enrollments = enrollmentsData?.data?.enrollments || enrollmentsData?.data || enrollmentsData || [];
+  const enrollments = enrollmentsData?.data?.enrollments || [];
   const enrolledIds = new Set(
     enrollments
       .filter((e) => e.status !== 'dropped')

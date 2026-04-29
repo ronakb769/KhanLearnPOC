@@ -18,7 +18,7 @@ const StudentLesson = () => {
 
   const lesson = lessonData?.data?.lesson || lessonData?.data || lessonData
   const lessons = lessonsData?.data?.lessons || lessonsData?.data || []
-  const progress = progressData?.data?.progress || progressData?.data || progressData || {}
+  const progress = progressData?.data?.progress || {}
   const completedLessons = progress.completedLessons || []
   const completedSet = new Set(completedLessons.map((l) => l?._id?.toString?.() || l?.toString?.() || l))
   const percentComplete = progress.percentComplete ?? 0

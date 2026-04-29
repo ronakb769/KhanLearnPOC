@@ -28,10 +28,10 @@ const AdminAnalytics = () => {
   const { data: usersData } = useGetUsersChartQuery()
   const { data: topCoursesData } = useGetTopCoursesQuery()
 
-  const stats = statsData?.data || statsData || {}
-  const enrollChartRaw = enrollData?.data || enrollData || []
-  const usersChartRaw = usersData?.data || usersData || []
-  const topCourses = topCoursesData?.data?.courses || topCoursesData?.data || []
+  const stats = statsData?.data || {}
+  const enrollChartRaw = enrollData?.data?.chart || []
+  const usersChartRaw = usersData?.data?.chart || []
+  const topCourses = topCoursesData?.data?.courses || []
 
   const enrollChart = {
     labels: enrollChartRaw.map((d) => d.month || d.label || ''),

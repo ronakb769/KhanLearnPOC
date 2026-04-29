@@ -22,19 +22,10 @@ const getQuizzesByCourse = asyncHandler(async (req, res) => {
 })
 
 const getQuizById = asyncHandler(async (req, res) => {
-  const quiz = await Quiz.findById(req.params.id)
+  const quiz = await Quiz.findOne({ _id: req.params.id },)
   if (!quiz) return error(res, 'Quiz not found', 404)
-  const result =
-    req.user.role === 'student'
-      ? {
-          ...quiz.toObject(),
-          questions: quiz.questions.map((q) => ({
-            ...q,
-            options: q.options.map((o) => ({ id: o.id, text: o.text })),
-          })),
-        }
-      : quiz.toObject()
-  return success(res, { quiz: result })
+ 
+  return success(res, { quiz: quiz })
 })
 
 const createQuiz = asyncHandler(async (req, res) => {

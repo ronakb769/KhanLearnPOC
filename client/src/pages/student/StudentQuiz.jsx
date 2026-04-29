@@ -17,7 +17,7 @@ const StudentQuiz = () => {
   const [answers, setAnswers] = useState({})
   const [result, setResult] = useState(null)
 
-  const quiz = quizData?.data?.quiz || quizData?.data || quizData
+  const quiz = quizData?.data?.quiz
   const questions = quiz?.questions || []
 
   const handleSelect = (questionId, selectedOptionId) => {
@@ -81,16 +81,19 @@ const StudentQuiz = () => {
       )}
 
       <div className="d-flex flex-column gap-4">
-        {questions.map((question, i) => (
-          <QuizQuestion
-            key={question.id || i}
-            question={question}
-            questionNumber={i + 1}
-            totalQuestions={questions.length}
-            selectedOptionId={answers[question.id]}
-            onSelect={(optionId) => handleSelect(question.id, optionId)}
-          />
-        ))}
+        {questions.map((question, i) => {
+          const qKey = question.id || question._id || i
+          return (
+            <QuizQuestion
+              key={qKey}
+              question={question}
+              questionNumber={i + 1}
+              totalQuestions={questions.length}
+              selectedOptionId={answers[qKey]}
+              onSelect={(optionId) => handleSelect(qKey, optionId)}
+            />
+          )
+        })}
       </div>
 
       <div className="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
