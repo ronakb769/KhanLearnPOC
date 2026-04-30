@@ -78,13 +78,14 @@ const StudentProgress = () => {
                           <CourseProgressBar percent={progress} />
                         </td>
                         <td>
-                          {completed ? (
-                            <span className="badge bg-success">Completed</span>
-                          ) : progress > 0 ? (
-                            <span className="badge bg-info">In Progress</span>
-                          ) : (
-                            <span className="badge bg-secondary">Not Started</span>
-                          )}
+                          {(() => {
+                            const isFinished = enrollment.status === 'completed' || 
+                              (progress >= 100 && (enrollment.quizCount === 0 || enrollment.passedQuizCount >= enrollment.quizCount));
+                            
+                            if (isFinished) return <span className="badge bg-success">Completed</span>;
+                            if (progress > 0) return <span className="badge bg-info">In Progress</span>;
+                            return <span className="badge bg-secondary">Not Started</span>;
+                          })()}
                         </td>
                       </tr>
                     )

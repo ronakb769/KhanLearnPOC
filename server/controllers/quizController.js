@@ -5,6 +5,7 @@ const Enrollment = require('../models/Enrollment')
 const Progress = require('../models/Progress')
 const asyncHandler = require('../utils/asyncHandler')
 const { success, error } = require('../utils/apiResponse')
+const { checkAndUpdateCourseCompletion } = require('../utils/courseUtils')
 
 const stripCorrectAnswers = (quizzes) =>
   quizzes.map((q) => ({
@@ -115,7 +116,21 @@ const attemptQuiz = asyncHandler(async (req, res) => {
   })
   await progress.save()
 
-  return success(res, { score, passed, total: quiz.questions.length, correct, results, passingScore: quiz.passingScore })
+  // Automatically check and update enrollment status if course is finished
+  let isNowComplete = false
+  if (passed) {
+    isNowComplete = await checkAndUpdateCourseCompletion(req.user._id, quiz.course)
+  }
+
+  return success(res, {
+    score,
+    passed,
+    total: quiz.questions.length,
+    correct,
+    results,
+    passingScore: quiz.passingScore,
+    isNowComplete
+  })
 })
 
 const getQuizResults = asyncHandler(async (req, res) => {

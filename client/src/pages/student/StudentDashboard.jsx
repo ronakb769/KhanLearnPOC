@@ -15,7 +15,10 @@ const StudentDashboard = () => {
   const overviewArray = progressData?.data?.overview || []
 
   const totalCourses = enrollments.length
-  const completedCourses = enrollments.filter((e) => e.status === 'completed').length
+  const completedCourses = enrollments.filter((e) => 
+    e.status === 'completed' || 
+    ((e.progressPercent ?? e.progress?.percentComplete ?? 0) >= 100 && (e.quizCount === 0 || e.passedQuizCount >= e.quizCount))
+  ).length
   const inProgress = totalCourses - completedCourses
   const avgProgress = overviewArray.length > 0 
     ? overviewArray.reduce((acc, p) => acc + (p.percentComplete || 0), 0) / overviewArray.length 
@@ -90,22 +93,42 @@ const StudentDashboard = () => {
                         </p>
                         <CourseProgressBar percent={progress} />
                         <div className="mt-3">
-                          {resumeLesson ? (
-                            <Link
-                              to={`/student/courses/${course._id}/lessons/${resumeLesson}`}
-                              className="btn btn-sm btn-primary w-100"
-                            >
-                              <i className={`bi ${progress > 0 ? 'bi-play-fill' : 'bi-play'} me-1`} />
-                              {progress > 0 ? 'Continue Learning' : 'Start Course'}
-                            </Link>
-                          ) : (
-                            <Link
-                              to={`/courses/${course._id}`}
-                              className="btn btn-sm btn-outline-secondary w-100"
-                            >
-                              <i className="bi bi-info-circle me-1" />View Course
-                            </Link>
-                          )}
+                          {(() => {
+                            const isFinished = progress >= 100 && (enrollment.quizCount === 0 || enrollment.passedQuizCount >= enrollment.quizCount);
+                            
+                            if (isFinished) {
+                              return (
+                                <Link 
+                                  to={`/student/courses/${course._id}/lessons/${resumeLesson || firstLessonId}`} 
+                                  className="btn btn-sm btn-success w-100"
+                                >
+                                  <i className="bi bi-check-all me-1" />
+                                  Completed
+                                </Link>
+                              );
+                            }
+
+                            if (resumeLesson) {
+                              return (
+                                <Link
+                                  to={`/student/courses/${course._id}/lessons/${resumeLesson}`}
+                                  className="btn btn-sm btn-primary w-100"
+                                >
+                                  <i className={`bi ${progress > 0 ? 'bi-play-fill' : 'bi-play'} me-1`} />
+                                  {progress > 0 ? 'Continue Learning' : 'Start Course'}
+                                </Link>
+                              );
+                            }
+
+                            return (
+                              <Link
+                                to={`/courses/${course._id}`}
+                                className="btn btn-sm btn-outline-secondary w-100"
+                              >
+                                <i className="bi bi-info-circle me-1" />View Course
+                              </Link>
+                            );
+                          })()}
                         </div>
                       </div>
                     </div>

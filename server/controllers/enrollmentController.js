@@ -2,6 +2,7 @@ const Course = require('../models/Course')
 const Lesson = require('../models/Lesson')
 const Enrollment = require('../models/Enrollment')
 const Progress = require('../models/Progress')
+const Quiz = require('../models/Quiz')
 const asyncHandler = require('../utils/asyncHandler')
 const { success, error } = require('../utils/apiResponse')
 
@@ -41,11 +42,19 @@ const getMyEnrollments = asyncHandler(async (req, res) => {
 
   const enriched = await Promise.all(
     enrollments.map(async (e) => {
-      const [progress, lessonCount, firstLesson] = await Promise.all([
+      const [progress, lessonCount, firstLesson, quizCount] = await Promise.all([
         Progress.findOne({ student: req.user._id, course: e.course._id }),
         Lesson.countDocuments({ course: e.course._id, isPublished: true }),
         Lesson.findOne({ course: e.course._id, isPublished: true }).sort({ order: 1 }).select('_id'),
+        Quiz.countDocuments({ course: e.course._id }),
       ])
+
+      const passedQuizIds = new Set(
+        (progress?.quizAttempts || [])
+          .filter((a) => a.passed)
+          .map((a) => a.quiz?.toString())
+      )
+
       return {
         ...e.toObject(),
         progressPercent: progress?.percentComplete || 0,
@@ -53,8 +62,12 @@ const getMyEnrollments = asyncHandler(async (req, res) => {
           percentComplete: progress?.percentComplete || 0,
           completedLessons: progress?.completedLessons || [],
           lastAccessedLesson: progress?.lastAccessedLesson || null,
+          passedQuizCount: passedQuizIds.size,
+          quizCount: quizCount,
         },
         lessonCount,
+        quizCount,
+        passedQuizCount: passedQuizIds.size,
         firstLessonId: firstLesson?._id || null,
       }
     })

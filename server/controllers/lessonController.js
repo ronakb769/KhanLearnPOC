@@ -4,6 +4,7 @@ const Enrollment = require('../models/Enrollment')
 const Progress = require('../models/Progress')
 const asyncHandler = require('../utils/asyncHandler')
 const { success, error } = require('../utils/apiResponse')
+const { checkAndUpdateCourseCompletion } = require('../utils/courseUtils')
 
 // GET /api/v1/courses/:courseId/lessons
 const getLessonsByCourse = asyncHandler(async (req, res) => {
@@ -137,7 +138,10 @@ const completeLesson = asyncHandler(async (req, res) => {
 
   await progress.save()
 
-  return success(res, { progress })
+  // Automatically check and update enrollment status if course is finished
+  const isNowComplete = await checkAndUpdateCourseCompletion(req.user._id, courseId)
+
+  return success(res, { progress, isNowComplete })
 })
 
 module.exports = {
