@@ -27,4 +27,19 @@ const verifyAccessToken = asyncHandler(async (req, res, next) => {
   next()
 })
 
-module.exports = { verifyAccessToken }
+const optionalAuth = asyncHandler(async (req, res, next) => {
+  const authHeader = req.headers.authorization
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return next()
+
+  const token = authHeader.split(' ')[1]
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+    const user = await User.findById(decoded.id).select('-password -refreshToken')
+    if (user && user.isActive) req.user = user
+  } catch (err) {
+    // Silent fail
+  }
+  next()
+})
+
+module.exports = { verifyAccessToken, optionalAuth }

@@ -4,6 +4,7 @@ import { NavLink, Link, useNavigate } from 'react-router-dom'
 import { clearCredentials } from '../../features/auth/authSlice'
 import { setSidebarCollapsed } from '../../features/ui/uiSlice'
 import { useLogoutMutation } from '../../services/authApi'
+import { useGetAdminStatsQuery } from '../../services/adminApi'
 import { getDashboardRoute } from '../../utils/formatters'
 
 const Navbar = () => {
@@ -12,6 +13,10 @@ const Navbar = () => {
   const { user, isAuthenticated } = useSelector((s) => s.auth)
   const { sidebarCollapsed } = useSelector((s) => s.ui)
   const [logout] = useLogoutMutation()
+  const { data: statsData } = useGetAdminStatsQuery(undefined, {
+    skip: !isAuthenticated || user?.role !== 'admin',
+    pollingInterval: 30000 // Poll every 30s for new requests
+  })
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef(null)
 
@@ -62,6 +67,25 @@ const Navbar = () => {
       <div className="ms-auto d-flex align-items-center gap-2">
         {isAuthenticated && user ? (
           <>
+            {user.role === 'admin' && (
+              <Link
+                to="/admin/courses"
+                className="btn btn-link text-dark p-2 position-relative d-flex align-items-center justify-content-center"
+                title="Pending Approvals"
+                style={{ background: 'var(--color-bg-light)', borderRadius: '10px' }}
+              >
+                <i className="bi bi-bell" style={{ fontSize: '1.2rem' }} />
+                {statsData?.data?.pendingCourses > 0 && (
+                  <span
+                    className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-white"
+                    style={{ fontSize: '0.65rem', padding: '0.25em 0.5em', marginTop: '5px', marginLeft: '-5px' }}
+                  >
+                    {statsData.data.pendingCourses}
+                  </span>
+                )}
+              </Link>
+            )}
+            
             {/* User dropdown — pure React, no Bootstrap JS needed */}
             <div className="position-relative" ref={dropdownRef}>
               <button
@@ -130,7 +154,7 @@ const Navbar = () => {
               )}
             </div>
           </>
-        ) : (
+        ) :(
           <>
             <Link to="/login" className="btn btn-outline-primary btn-sm">Login</Link>
             <Link to="/register" className="btn btn-primary btn-sm">Sign Up</Link>

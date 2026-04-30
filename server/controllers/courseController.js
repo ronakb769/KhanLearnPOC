@@ -7,9 +7,16 @@ const { success, error } = require('../utils/apiResponse')
 
 // GET /api/v1/courses
 const getCourses = asyncHandler(async (req, res) => {
-  const { category, level, search, page = 1, limit = 9, sort = 'newest' } = req.query
+  const { category, level, search, page = 1, limit = 9, sort = 'newest', status, all } = req.query
 
-  const filter = { status: 'approved' }
+  let filter = { status: 'approved' }
+
+  // Admin can view all courses with specific status filters
+  if (all === 'true' && req.user?.role === 'admin') {
+    filter = {} // Remove default approved filter
+    if (status) filter.status = status
+  }
+
   if (category) filter.category = category
   if (level) filter.level = level
   if (search) {

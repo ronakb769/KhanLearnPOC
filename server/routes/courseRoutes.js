@@ -2,7 +2,7 @@ const express = require('express')
 const router = express.Router()
 
 const courseController = require('../controllers/courseController')
-const { verifyAccessToken } = require('../middleware/authMiddleware')
+const { verifyAccessToken, optionalAuth } = require('../middleware/authMiddleware')
 const { authorize } = require('../middleware/roleMiddleware')
 const { validate } = require('../middleware/validateMiddleware')
 const { createCourseValidator, updateCourseValidator } = require('../validators/courseValidator')
@@ -16,8 +16,8 @@ router.get(
   courseController.getMyCourses
 )
 
-// Public routes
-router.get('/', courseController.getCourses)
+// Public routes (with optional auth for admin filtering)
+router.get('/', optionalAuth, courseController.getCourses)
 router.get('/:id', courseController.getCourseById)
 
 // Protected routes

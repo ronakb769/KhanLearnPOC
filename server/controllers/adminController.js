@@ -17,6 +17,7 @@ const getStats = asyncHandler(async (req, res) => {
     enrollmentsThisMonth,
     activeStudents,
     quizzesAttemptedResult,
+    pendingCourses,
   ] = await Promise.all([
     User.countDocuments({ isActive: true }),
     Course.countDocuments(),
@@ -25,6 +26,7 @@ const getStats = asyncHandler(async (req, res) => {
     Enrollment.countDocuments({ createdAt: { $gte: startOfMonth } }),
     Enrollment.distinct('student', { status: 'active' }),
     Progress.aggregate([{ $unwind: '$quizAttempts' }, { $count: 'total' }]),
+    Course.countDocuments({ status: 'pending' }),
   ])
 
   return success(res, {
@@ -35,6 +37,7 @@ const getStats = asyncHandler(async (req, res) => {
     quizzesAttempted: quizzesAttemptedResult[0]?.total || 0,
     newUsersThisMonth,
     enrollmentsThisMonth,
+    pendingCourses,
   })
 })
 

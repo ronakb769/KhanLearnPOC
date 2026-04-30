@@ -12,13 +12,13 @@ const CATEGORIES = [
   'Mathematics', 'Science', 'History', 'Computer Science',
   'Language Arts', 'Economics', 'Arts', 'Other',
 ]
-const LEVELS = ['beginner', 'intermediate', 'advanced']
+const LEVELS = ['Beginner', 'Intermediate', 'Advanced']
 
 const EMPTY_FORM = {
   title: '',
   description: '',
   category: '',
-  level: 'beginner',
+  level: 'Beginner',
   thumbnail: '',
   price: 0,
 }
@@ -43,7 +43,7 @@ const TeacherCourseForm = () => {
         title: c.title || '',
         description: c.description || '',
         category: c.category || '',
-        level: c.level || 'beginner',
+        level: c.level || 'Beginner',
         thumbnail: c.thumbnail || '',
         price: c.price ?? 0,
       })
@@ -145,7 +145,7 @@ const TeacherCourseForm = () => {
               <div className="col-md-6">
                 <label className="form-label fw-semibold">Level</label>
                 <select className="form-select" name="level" value={form.level} onChange={handleChange}>
-                  {LEVELS.map((l) => <option key={l} value={l}>{l.charAt(0).toUpperCase() + l.slice(1)}</option>)}
+                  {LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
                 </select>
               </div>
             </div>
