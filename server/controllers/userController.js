@@ -96,4 +96,93 @@ const getUserStats = asyncHandler(async (req, res) => {
   })
 })
 
-module.exports = { getUsers, getUserById, updateUserStatus, deleteUser, getUserStats }
+const crypto = require('crypto')
+const sendEmail = require('../utils/sendEmail')
+
+// GET /api/v1/users/me
+const getMe = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id)
+  return success(res, { user })
+})
+
+// PATCH /api/v1/users/update-me
+const updateMe = asyncHandler(async (req, res) => {
+  const { name, bio } = req.body
+  const user = await User.findByIdAndUpdate(
+    req.user._id,
+    { name, bio },
+    { new: true, runValidators: true }
+  )
+  return success(res, { user }, 'Profile updated')
+})
+
+// POST /api/v1/users/request-email-update
+const requestEmailUpdate = asyncHandler(async (req, res) => {
+  const { email } = req.body
+  if (!email) return error(res, 'New email is required', 400)
+
+  // Check if email already exists
+  const exists = await User.findOne({ email })
+  if (exists) return error(res, 'Email already in use', 400)
+
+  // Generate 6-digit OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString()
+  const hashedOtp = crypto.createHash('sha256').update(otp).digest('hex')
+
+  await User.findByIdAndUpdate(req.user._id, {
+    pendingEmail: email,
+    emailUpdateOTP: hashedOtp,
+    emailUpdateExpire: Date.now() + 10 * 60 * 1000 // 10 mins
+  })
+
+  try {
+    await sendEmail({
+      email,
+      subject: 'Email Update Verification',
+      message: `Your verification code for updating email is: ${otp}. This code is valid for 10 minutes.`
+    })
+    return success(res, {}, 'Verification code sent to your new email')
+  } catch (err) {
+    await User.findByIdAndUpdate(req.user._id, {
+      emailUpdateOTP: undefined,
+      emailUpdateExpire: undefined,
+      pendingEmail: undefined
+    })
+    return error(res, 'Email could not be sent', 500)
+  }
+})
+
+// POST /api/v1/users/verify-email-update
+const verifyEmailUpdate = asyncHandler(async (req, res) => {
+  const { otp } = req.body
+  if (!otp) return error(res, 'OTP is required', 400)
+
+  const hashedOtp = crypto.createHash('sha256').update(otp).digest('hex')
+  const user = await User.findOne({
+    _id: req.user._id,
+    emailUpdateOTP: hashedOtp,
+    emailUpdateExpire: { $gt: Date.now() }
+  })
+
+  if (!user) return error(res, 'Invalid or expired OTP', 400)
+
+  user.email = user.pendingEmail
+  user.pendingEmail = undefined
+  user.emailUpdateOTP = undefined
+  user.emailUpdateExpire = undefined
+  await user.save()
+
+  return success(res, { user }, 'Email updated successfully')
+})
+
+module.exports = {
+  getUsers,
+  getUserById,
+  updateUserStatus,
+  deleteUser,
+  getUserStats,
+  getMe,
+  updateMe,
+  requestEmailUpdate,
+  verifyEmailUpdate
+}

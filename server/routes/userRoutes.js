@@ -6,9 +6,17 @@ const { verifyAccessToken } = require('../middleware/authMiddleware')
 const { authorize } = require('../middleware/roleMiddleware')
 const { ROLES } = require('../constants/roles')
 
-// All user management routes require admin access
-router.use(verifyAccessToken, authorize(ROLES.ADMIN))
+// All user routes require authentication
+router.use(verifyAccessToken)
 
+// Profile routes (Any authenticated user)
+router.get('/me', userController.getMe)
+router.patch('/update-me', userController.updateMe)
+router.post('/request-email-update', userController.requestEmailUpdate)
+router.post('/verify-email-update', userController.verifyEmailUpdate)
+
+// User management routes (Admin only)
+router.use(authorize(ROLES.ADMIN))
 router.get('/', userController.getUsers)
 router.get('/:id', userController.getUserById)
 router.patch('/:id/status', userController.updateUserStatus)

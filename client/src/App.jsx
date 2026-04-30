@@ -41,6 +41,9 @@ import AdminUsers from './pages/admin/AdminUsers'
 import AdminCourses from './pages/admin/AdminCourses'
 import AdminAnalytics from './pages/admin/AdminAnalytics'
 
+// User pages
+import ProfilePage from './pages/user/ProfilePage'
+
 // Misc
 import UnauthorizedPage from './pages/misc/UnauthorizedPage'
 
@@ -71,6 +74,7 @@ const App = () => {
         {/* Shared routes — accessible to all roles inside dashboard layout */}
         <Route element={<DashboardLayout />}>
           <Route path="/browse" element={<BrowseCoursesPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
         </Route>
 
         {/* Student routes */}

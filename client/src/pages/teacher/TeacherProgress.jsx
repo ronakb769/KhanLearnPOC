@@ -10,8 +10,11 @@ const TeacherProgress = () => {
   const { data: courseData } = useGetCourseByIdQuery(courseId)
   const { data, isLoading, isError } = useGetAllStudentsProgressQuery(courseId)
 
+
+  
   const course = courseData?.data || courseData
-  const students = data?.data?.students || data?.data || []
+  
+  const students = data?.data?.progresses || []
 
   if (isLoading) return <Loader />
 
@@ -27,7 +30,7 @@ const TeacherProgress = () => {
             </Link>
           </div>
           <h3 className="fw-bold mb-0" style={{ color: '#1d3557' }}>
-            Student Progress — {course?.title || 'Loading...'}
+            Student Progress — {course?.course?.title || 'Loading...'}
           </h3>
         </div>
       </div>
@@ -48,7 +51,8 @@ const TeacherProgress = () => {
                     <th>Student</th>
                     <th>Email</th>
                     <th style={{ minWidth: 180 }}>Progress</th>
-                    <th className="text-center">Lessons Done</th>
+                    <th className="text-center">Lessons</th>
+                    <th className="text-center">Quizzes</th>
                     <th>Status</th>
                   </tr>
                 </thead>
@@ -57,12 +61,13 @@ const TeacherProgress = () => {
                     <tr key={s.student?._id || s._id}>
                       <td className="fw-semibold">{s.student?.name || '—'}</td>
                       <td className="text-muted small">{s.student?.email || '—'}</td>
-                      <td><CourseProgressBar percent={s.progressPercent ?? 0} /></td>
-                      <td className="text-center">{s.completedLessons ?? 0} / {s.totalLessons ?? 0}</td>
+                      <td><CourseProgressBar percent={s.percentComplete ?? 0} /></td>
+                      <td className="text-center fw-semibold text-primary">{s.completedLessons?.length || 0} / {s.totalLessons || 0}</td>
+                      <td className="text-center fw-semibold text-success">{s.passedQuizzes || 0} / {s.totalQuizzes || 0}</td>
                       <td>
-                        {s.completed ? (
+                        {s.isFinished ? (
                           <span className="badge bg-success">Completed</span>
-                        ) : (s.progressPercent ?? 0) > 0 ? (
+                        ) : (s.percentComplete ?? 0) > 0 ? (
                           <span className="badge bg-info">In Progress</span>
                         ) : (
                           <span className="badge bg-secondary">Not Started</span>

@@ -20,7 +20,7 @@ const getLessonsByCourse = asyncHandler(async (req, res) => {
     const enrollment = await Enrollment.findOne({
       student: req.user._id,
       course: courseId,
-      status: 'active'
+      status: { $in: ['active', 'completed'] }
     })
     if (!enrollment) return error(res, 'Not enrolled', 403)
   }
@@ -42,7 +42,7 @@ const getLessonById = asyncHandler(async (req, res) => {
     const enrollment = await Enrollment.findOne({
       student: req.user._id,
       course: lesson.course._id,
-      status: 'active'
+      status: { $in: ['active', 'completed'] }
     })
     if (!enrollment) return error(res, 'Not enrolled', 403)
   }
@@ -117,7 +117,7 @@ const completeLesson = asyncHandler(async (req, res) => {
   const enrollment = await Enrollment.findOne({
     student: req.user._id,
     course: courseId,
-    status: 'active'
+    status: { $in: ['active', 'completed'] }
   })
   if (!enrollment) return error(res, 'Not enrolled', 403)
 

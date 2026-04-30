@@ -60,15 +60,15 @@ const getMyEnrollments = asyncHandler(async (req, res) => {
         progressPercent: progress?.percentComplete || 0,
         progress: {
           percentComplete: progress?.percentComplete || 0,
-          completedLessons: progress?.completedLessons || [],
-          lastAccessedLesson: progress?.lastAccessedLesson || null,
+          completedLessons: (progress?.completedLessons || []).map((l) => l.toString()),
+          lastAccessedLesson: progress?.lastAccessedLesson?.toString() || null,
           passedQuizCount: passedQuizIds.size,
           quizCount: quizCount,
         },
         lessonCount,
         quizCount,
         passedQuizCount: passedQuizIds.size,
-        firstLessonId: firstLesson?._id || null,
+        firstLessonId: firstLesson?._id?.toString() || null,
       }
     })
   )

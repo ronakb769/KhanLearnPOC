@@ -25,6 +25,21 @@ export const userApi = createApi({
     getUserStats: builder.query({
       query: (id) => ({ url: `/users/${id}/stats`, method: 'GET' }),
     }),
+    getMe: builder.query({
+      query: () => ({ url: '/users/me', method: 'GET' }),
+      providesTags: ['User'],
+    }),
+    updateMe: builder.mutation({
+      query: (data) => ({ url: '/users/update-me', method: 'PATCH', data }),
+      invalidatesTags: ['User'],
+    }),
+    requestEmailUpdate: builder.mutation({
+      query: (data) => ({ url: '/users/request-email-update', method: 'POST', data }),
+    }),
+    verifyEmailUpdate: builder.mutation({
+      query: (data) => ({ url: '/users/verify-email-update', method: 'POST', data }),
+      invalidatesTags: ['User'],
+    }),
   }),
 })
 
@@ -34,4 +49,8 @@ export const {
   useUpdateUserStatusMutation,
   useDeleteUserMutation,
   useGetUserStatsQuery,
+  useGetMeQuery,
+  useUpdateMeMutation,
+  useRequestEmailUpdateMutation,
+  useVerifyEmailUpdateMutation,
 } = userApi

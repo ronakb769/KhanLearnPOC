@@ -69,7 +69,8 @@ const StudentDashboard = () => {
                 const progress = enrollment.progressPercent ?? enrollment.progress?.percentComplete ?? 0
                 const firstLessonId = enrollment.firstLessonId
                 const lastLesson = enrollment.progress?.lastAccessedLesson
-                const resumeLesson = lastLesson || firstLessonId
+                const completedLessons = enrollment.progress?.completedLessons || []
+                const resumeLesson = lastLesson || firstLessonId || (completedLessons.length > 0 ? completedLessons[0] : null)
                 return (
                   <div className="col-md-6 col-xl-4" key={enrollment._id}>
                     <div className="card h-100 border-0 shadow-sm">

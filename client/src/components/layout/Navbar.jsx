@@ -107,6 +107,15 @@ const Navbar = () => {
                     <i className="bi bi-speedometer2 text-primary" />My Dashboard
                   </Link>
 
+                  <Link
+                    className="d-flex align-items-center gap-2 px-3 py-2 text-decoration-none text-dark dropdown-item-hover"
+                    style={{ fontSize: '0.875rem' }}
+                    to="/profile"
+                    onClick={() => setDropdownOpen(false)}
+                  >
+                    <i className="bi bi-person-circle text-primary" />My Profile
+                  </Link>
+
                   <div style={{ height: 1, background: '#f0f0f0', margin: '4px 0' }} />
 
                   {/* Logout */}

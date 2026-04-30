@@ -80,7 +80,7 @@ const attemptQuiz = asyncHandler(async (req, res) => {
   const quiz = await Quiz.findById(req.params.id)
   if (!quiz) return error(res, 'Quiz not found', 404)
 
-  const enrollment = await Enrollment.findOne({ student: req.user._id, course: quiz.course, status: 'active' })
+  const enrollment = await Enrollment.findOne({ student: req.user._id, course: quiz.course, status: { $in: ['active', 'completed'] } })
   if (!enrollment) return error(res, 'Not enrolled in this course', 403)
 
   const { answers = [] } = req.body

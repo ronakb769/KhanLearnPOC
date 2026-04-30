@@ -47,7 +47,28 @@ const getAllStudentsProgress = asyncHandler(async (req, res) => {
     .populate('lastAccessedLesson', 'title order')
     .sort({ updatedAt: -1 })
 
-  return success(res, { progresses })
+  const enriched = await Promise.all(
+    progresses.map(async (p) => {
+      const [totalLessons, totalQuizzes] = await Promise.all([
+        Lesson.countDocuments({ course: req.params.courseId, isPublished: true }),
+        Quiz.countDocuments({ course: req.params.courseId }),
+      ])
+      const passedQuizzes = p.quizAttempts.filter((a) => a.passed).length
+      
+      // Check if course is fully completed (lessons + quizzes)
+      const isFinished = p.percentComplete >= 100 && (totalQuizzes === 0 || passedQuizzes >= totalQuizzes)
+
+      return {
+        ...p.toObject(),
+        totalLessons,
+        totalQuizzes,
+        passedQuizzes,
+        isFinished
+      }
+    })
+  )
+
+  return success(res, { progresses: enriched })
 })
 
 const getStudentProgress = asyncHandler(async (req, res) => {
