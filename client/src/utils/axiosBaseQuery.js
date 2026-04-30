@@ -32,7 +32,7 @@ export const axiosBaseQuery =
       const status = err.response?.status
       const errData = err.response?.data
 
-      if (status === 401) {
+      if (status === 401 && !url.includes('/auth/login')) {
         if (!isRefreshing) {
           isRefreshing = true
           try {

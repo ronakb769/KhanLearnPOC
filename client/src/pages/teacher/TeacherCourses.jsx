@@ -26,7 +26,8 @@ const TeacherCourses = () => {
 
   const [deleteTarget, setDeleteTarget] = useState(null)
 
-  const courses = data?.courses || data || []
+  
+  const courses = data?.data?.courses || data || []
 
   const handleDelete = async () => {
     try {

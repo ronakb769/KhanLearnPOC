@@ -43,7 +43,9 @@ const userSchema = new mongoose.Schema(
     },
     lastLogin: {
       type: Date
-    }
+    },
+    resetPasswordToken: String,
+    resetPasswordExpire: Date
   },
   { timestamps: true }
 )
@@ -63,6 +65,21 @@ userSchema.methods.comparePassword = async function (plain) {
 // Static method: find by email including hidden fields
 userSchema.statics.findByEmail = function (email) {
   return this.findOne({ email }).select('+password +refreshToken')
+}
+
+// Instance method: get reset password token
+userSchema.methods.getResetPasswordToken = function () {
+  const crypto = require('crypto')
+  // Generate token
+  const resetToken = crypto.randomBytes(20).toString('hex')
+
+  // Hash token and set to resetPasswordToken field
+  this.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex')
+
+  // Set expire (10 minutes)
+  this.resetPasswordExpire = Date.now() + 10 * 60 * 1000
+
+  return resetToken
 }
 
 const User = mongoose.model('User', userSchema)

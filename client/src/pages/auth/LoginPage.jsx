@@ -34,13 +34,19 @@ export default function LoginPage() {
       const { user, accessToken } = result.data || result;
       dispatch(setCredentials({ user, accessToken }));
       showToast(`Welcome back, ${user.name}!`, 'success');
-      if (user.role === 'teacher') {
+      
+      if (user.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else if (user.role === 'teacher') {
         navigate('/teacher/dashboard');
       } else {
         navigate('/student/dashboard');
       }
     } catch (err) {
-      setServerError(err?.data?.message || 'Invalid credentials. Please try again.');
+      console.error('Login error:', err);
+      const msg = err?.data?.message || 'Invalid credentials. Please try again.';
+      setServerError(msg);
+      showToast(msg, 'error');
     }
   };
 
@@ -102,12 +108,12 @@ export default function LoginPage() {
           <h3 className="fw-bold mb-1">Welcome back</h3>
           <p className="text-muted mb-4">Sign in to continue your learning journey.</p>
 
-          {serverError && (
+          {/* {serverError && (
             <div className="alert alert-danger d-flex align-items-center gap-2" role="alert">
               <i className="bi bi-exclamation-triangle-fill"></i>
               {serverError}
             </div>
-          )}
+          )} */}
 
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
             {/* Email */}
@@ -169,9 +175,9 @@ export default function LoginPage() {
                   Remember me
                 </label>
               </div>
-              <a href="#" className="text-decoration-none text-muted small">
+              <Link to="/forgot-password" className="text-decoration-none text-muted small">
                 Forgot password?
-              </a>
+              </Link>
             </div>
 
             {/* Submit */}

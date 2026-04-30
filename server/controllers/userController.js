@@ -10,7 +10,7 @@ const { success, error } = require('../utils/apiResponse')
 const getUsers = asyncHandler(async (req, res) => {
   const { role, isActive, search, page = 1, limit = 10 } = req.query
 
-  const filter = {}
+  const filter = { _id: { $ne: req.user._id } }
   if (role) filter.role = role
   if (isActive !== undefined) filter.isActive = isActive === 'true'
   if (search) {
