@@ -117,6 +117,61 @@ await enroll({ courseId }).unwrap() // WRONG — double-wraps the body
 - `RoleRoute` — requires specific role; unauthorized → `/unauthorized`
 - Dashboard routes: `/student/dashboard`, `/teacher/dashboard`, `/admin/dashboard`
 
+## MCP Server
+ 
+KhanLearn exposes a Model Context Protocol server at `POST /api/v1/mcp`.
+ 
+```
+server/mcp/
+├── mcpServer.js   # Express router — JSON-RPC 2.0 dispatcher + SSE endpoint
+├── tools.js       # MCP tool definitions (JSON Schema for each tool)
+└── handlers.js    # Tool implementations (DB queries → MCP content blocks)
+```
+ 
+**Transport:** HTTP POST `http://localhost:5000/api/v1/mcp`
+**Auth:** `Authorization: Bearer <jwt>` OR `x-mcp-secret: <MCP_SECRET>` header
+ 
+**Available Tools:**
+| Tool | Description |
+|------|-------------|
+| `get_courses` | List/filter approved courses |
+| `get_course_detail` | Full course with lessons + quizzes |
+| `get_users` | Admin-only: list users |
+| `get_enrollments` | Enrollment records by student/course |
+| `get_student_progress` | Per-course progress for a student |
+| `get_analytics_summary` | Platform-wide KPIs |
+| `get_quiz_results` | Quiz attempt records |
+| `search_content` | Full-text across courses/lessons/quizzes |
+ 
+**Available Resources:** `khanlearn://analytics/summary`, `khanlearn://courses/catalog`
+ 
+**Available Prompts:** `analyze_student`, `course_recommendation`, `quiz_question_generator`, `lesson_outline_generator`
+ 
+**Quick test:**
+```bash
+curl -X POST http://localhost:5000/api/v1/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
+```
+ 
+**Add `MCP_SECRET` to `server/.env`** to enable secret-based auth for MCP clients (optional).
+ 
+## Claude Code Skills (Slash Commands)
+ 
+Custom skills live in `.claude/skills/`. Invoke with `/skill-name` in Claude Code.
+ 
+| Skill | Description |
+|-------|-------------|
+| `/generate-quiz` | Generate a complete quiz JSON for any topic — ready to seed or POST |
+| `/generate-lesson` | Generate full lesson content (HTML + Mongoose doc) for any topic |
+| `/analyze-student` | Pull live data via MCP and produce a student progress report |
+| `/api-test` | Smoke-test all API endpoints including MCP; outputs pass/fail table |
+| `/scaffold` | Generate controller+route+validator or page+service boilerplate |
+| `/mcp-query` | Query the MCP server — shows curl commands and formats responses |
+| `/check` | Audit project state: built pages, missing files, prop issues |
+| `/debug` | Debug a reported bug or error |
+| `/seed` | Seed or reset the database |
+
 ## Known Issues / Notes
 - Bootstrap JS is NOT loaded — never use `data-bs-toggle`. Use React state for dropdowns/modals.
 - The Navbar dropdown is fully React-controlled (`useState` + `useRef` for click-outside).

@@ -16,6 +16,7 @@ const quizRoutes = require('./routes/quizRoutes')
 const enrollmentRoutes = require('./routes/enrollmentRoutes')
 const progressRoutes = require('./routes/progressRoutes')
 const adminRoutes = require('./routes/adminRoutes')
+const mcpServer = require('./mcp/mcpServer')
 
 connectDB()
 
@@ -50,6 +51,7 @@ app.use('/api/v1/quizzes', quizRoutes)
 app.use('/api/v1/enrollments', enrollmentRoutes)
 app.use('/api/v1/progress', progressRoutes)
 app.use('/api/v1/admin', adminRoutes)
+app.use('/api/v1/mcp', mcpServer)
 
 app.use(notFound)
 app.use(errorHandler)
