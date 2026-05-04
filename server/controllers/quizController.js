@@ -12,7 +12,7 @@ const stripCorrectAnswers = (quizzes) =>
     ...q.toObject(),
     questions: q.questions.map((qq) => ({
       ...qq,
-      options: qq.options.map((o) => ({ id: o.id, text: o.text })),
+      options: qq.options.map((o) => ({ _id: o._id, text: o.text })),
     })),
   }))
 
@@ -39,8 +39,7 @@ const createQuiz = asyncHandler(async (req, res) => {
 
   const questions = (req.body.questions || []).map((q) => ({
     ...q,
-    id: q.id || randomUUID(),
-    options: (q.options || []).map((o) => ({ ...o, id: o.id || randomUUID() })),
+    options: (q.options || []).map((o) => ({ ...o })),
   }))
 
   const quiz = await Quiz.create({ ...req.body, questions })
@@ -57,8 +56,7 @@ const updateQuiz = asyncHandler(async (req, res) => {
   if (req.body.questions) {
     req.body.questions = req.body.questions.map((q) => ({
       ...q,
-      id: q.id || randomUUID(),
-      options: (q.options || []).map((o) => ({ ...o, id: o.id || randomUUID() })),
+      options: (q.options || []).map((o) => ({ ...o })),
     }))
   }
 
@@ -87,15 +85,15 @@ const attemptQuiz = asyncHandler(async (req, res) => {
 
   let correct = 0
   const results = quiz.questions.map((q) => {
-    const userAnswer = answers.find((a) => a.questionId === q.id)
+    const userAnswer = answers.find((a) => a.questionId === q._id.toString())
     const correctOption = q.options.find((o) => o.isCorrect)
-    const isCorrect = userAnswer?.selectedOptionId === correctOption?.id
+    const isCorrect = userAnswer?.selectedOptionId === correctOption?._id.toString()
     if (isCorrect) correct++
     return {
-      questionId: q.id,
+      questionId: q._id,
       correct: isCorrect,
       selectedOptionId: userAnswer?.selectedOptionId || null,
-      correctOptionId: correctOption?.id,
+      correctOptionId: correctOption?._id,
       explanation: q.explanation,
       questionText: q.questionText,
     }

@@ -33,6 +33,13 @@ router.post(
 )
 
 router.put(
+  '/:id/bulk-update',
+  verifyAccessToken,
+  authorize(ROLES.TEACHER, ROLES.ADMIN),
+  courseController.bulkUpdateCourse
+)
+
+router.put(
   '/:id',
   verifyAccessToken,
   authorize(ROLES.TEACHER, ROLES.ADMIN),

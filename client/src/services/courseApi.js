@@ -46,6 +46,10 @@ export const courseApi = createApi({
       query: () => ({ url: '/courses/teacher/mine', method: 'GET' }),
       providesTags: ['MyCourses'],
     }),
+    bulkUpdateCourse: builder.mutation({
+      query: ({ id, ...data }) => ({ url: `/courses/${id}/bulk-update`, method: 'PUT', data }),
+      invalidatesTags: ['Course', 'MyCourses'],
+    }),
   }),
 })
 
@@ -55,6 +59,7 @@ export const {
   useGetCourseFullDetailQuery,
   useCreateCourseMutation,
   useUpdateCourseMutation,
+  useBulkUpdateCourseMutation,
   useDeleteCourseMutation,
   useSubmitForApprovalMutation,
   useApproveCourseMutation,

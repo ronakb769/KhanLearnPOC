@@ -18,6 +18,11 @@ const lessonSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Content is required']
     },
+    contentType: {
+      type: String,
+      enum: ['video', 'article', 'pdf'],
+      default: 'article'
+    },
     videoUrl: {
       type: String
     },

@@ -23,6 +23,7 @@ export default function CourseCatalogPage() {
     search: searchParams.get('search') || '',
     category: searchParams.get('category') || '',
     level: searchParams.get('level') || '',
+    teacher: searchParams.get('teacher') || '',
     sort: searchParams.get('sort') || 'newest',
     page: parseInt(searchParams.get('page') || '1', 10),
     limit: 9,
@@ -35,6 +36,7 @@ export default function CourseCatalogPage() {
       category: searchParams.get('category') || '',
       search: searchParams.get('search') || '',
       level: searchParams.get('level') || '',
+      teacher: searchParams.get('teacher') || '',
       sort: searchParams.get('sort') || 'newest',
       page: parseInt(searchParams.get('page') || '1', 10),
     }));
@@ -64,6 +66,7 @@ export default function CourseCatalogPage() {
     if (updated.search) params.search = updated.search;
     if (updated.category) params.category = updated.category;
     if (updated.level) params.level = updated.level;
+    if (updated.teacher) params.teacher = updated.teacher;
     if (updated.sort && updated.sort !== 'newest') params.sort = updated.sort;
     if (updated.page > 1) params.page = String(updated.page);
     setSearchParams(params);
@@ -91,6 +94,10 @@ export default function CourseCatalogPage() {
     filters.search && { key: 'search', label: `"${filters.search}"` },
     filters.category && { key: 'category', label: filters.category },
     filters.level && { key: 'level', label: filters.level },
+    filters.teacher && { 
+      key: 'teacher', 
+      label: courses[0]?.teacher?.name ? `Instructor: ${courses[0].teacher.name}` : 'Specific Instructor' 
+    },
   ].filter(Boolean);
 
   return (
@@ -131,7 +138,7 @@ export default function CourseCatalogPage() {
             <button
               className="btn btn-link btn-sm text-decoration-none p-0"
               onClick={() =>
-                updateFilters({ search: '', category: '', level: '', sort: 'newest', page: 1 })
+                updateFilters({ search: '', category: '', level: '', teacher: '', sort: 'newest', page: 1 })
               }
             >
               Clear all

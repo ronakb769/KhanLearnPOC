@@ -7,7 +7,7 @@ const { success, error } = require('../utils/apiResponse')
 
 // GET /api/v1/courses
 const getCourses = asyncHandler(async (req, res) => {
-  const { category, level, search, page = 1, limit = 9, sort = 'newest', status, all } = req.query
+  const { category, level, search, page = 1, limit = 9, sort = 'newest', status, all, teacher } = req.query
 
   let filter = { status: 'approved' }
 
@@ -19,6 +19,7 @@ const getCourses = asyncHandler(async (req, res) => {
 
   if (category) filter.category = category
   if (level) filter.level = level
+  if (teacher) filter.teacher = teacher
   if (search) {
     filter.$or = [
       { title: { $regex: search, $options: 'i' } },
@@ -104,7 +105,7 @@ const getCourseFullDetail = asyncHandler(async (req, res) => {
 
 // POST /api/v1/courses
 const createCourse = asyncHandler(async (req, res) => {
-  const { title, description, category, level, thumbnail, tags } = req.body
+  const { title, description, category, level, thumbnail, tags, lessons = [], quizzes = [] } = req.body
 
   const course = await Course.create({
     title,
@@ -113,10 +114,25 @@ const createCourse = asyncHandler(async (req, res) => {
     level,
     thumbnail,
     tags,
-    teacher: req.user._id
+    teacher: req.user._id,
+    status: 'pending'
   })
 
-  return success(res, { course }, 'Course created', 201)
+  // Create lessons
+  const createdLessons = []
+  for (const l of lessons) {
+    const createdL = await Lesson.create({ ...l, course: course._id })
+    createdLessons.push(createdL)
+  }
+
+  // Create quizzes
+  const createdQuizzes = []
+  for (const q of quizzes) {
+    const createdQ = await Quiz.create({ ...q, course: course._id })
+    createdQuizzes.push(createdQ)
+  }
+
+  return success(res, { course, lessons: createdLessons, quizzes: createdQuizzes }, 'Course created with curriculum', 201)
 })
 
 // PUT /api/v1/courses/:id
@@ -128,10 +144,11 @@ const updateCourse = asyncHandler(async (req, res) => {
     return error(res, 'Not authorized', 403)
   }
 
-  const updated = await Course.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true
-  })
+  const updated = await Course.findByIdAndUpdate(
+    req.params.id,
+    { ...req.body, status: 'pending' },
+    { new: true, runValidators: true }
+  )
 
   return success(res, { course: updated })
 })
@@ -217,12 +234,76 @@ const getMyCourses = asyncHandler(async (req, res) => {
   return success(res, { courses: coursesWithStats })
 })
 
+// PUT /api/v1/courses/:id/bulk-update
+// Single atomic call: update course details + modified lessons + modified quizzes
+const bulkUpdateCourse = asyncHandler(async (req, res) => {
+  const { lessons = [], quizzes = [], title, description, category, level, thumbnail, price } = req.body
+
+  console.log(`[bulk-update] Starting update for course: ${req.params.id}`)
+  console.log(`[bulk-update] Data received - Lessons: ${lessons.length}, Quizzes: ${quizzes.length}`)
+
+  const course = await Course.findById(req.params.id)
+  if (!course) return error(res, 'Course not found', 404)
+
+  if (course.teacher.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+    return error(res, 'Not authorized', 403)
+  }
+
+  // Update course basic info
+  const updatedCourse = await Course.findByIdAndUpdate(
+    req.params.id,
+    { title, description, category, level, thumbnail, price, status: 'pending' },
+    { new: true, runValidators: true }
+  )
+
+  // Update lessons
+  const updatedLessons = []
+  for (const l of lessons) {
+    const { _id, ...fields } = l
+    if (_id) {
+      console.log(`[bulk-update] Updating lesson: ${_id} (${fields.title})`)
+      const updatedL = await Lesson.findByIdAndUpdate(_id, fields, { new: true, runValidators: true })
+      if (updatedL) updatedLessons.push(updatedL)
+      else console.warn(`[bulk-update] Lesson not found for update: ${_id}`)
+    } else {
+      console.log(`[bulk-update] Creating new lesson: ${fields.title}`)
+      const newL = await Lesson.create({ ...fields, course: req.params.id })
+      updatedLessons.push(newL)
+    }
+  }
+
+  // Update quizzes
+  const updatedQuizzes = []
+  for (const q of quizzes) {
+    const { _id, ...fields } = q
+    if (_id) {
+      console.log(`[bulk-update] Updating quiz: ${_id} (${fields.title})`)
+      const updatedQ = await Quiz.findByIdAndUpdate(_id, fields, { new: true, runValidators: true })
+      if (updatedQ) updatedQuizzes.push(updatedQ)
+      else console.warn(`[bulk-update] Quiz not found for update: ${_id}`)
+    } else {
+      console.log(`[bulk-update] Creating new quiz: ${fields.title}`)
+      const newQ = await Quiz.create({ ...fields, course: req.params.id })
+      updatedQuizzes.push(newQ)
+    }
+  }
+
+  console.log(`[bulk-update] Completed successfully. Updated ${updatedLessons.length} lessons and ${updatedQuizzes.length} quizzes.`)
+
+  return success(res, { 
+    course: updatedCourse, 
+    lessons: updatedLessons, 
+    quizzes: updatedQuizzes 
+  }, 'Course and curriculum updated successfully')
+})
+
 module.exports = {
   getCourses,
   getCourseById,
   getCourseFullDetail,
   createCourse,
   updateCourse,
+  bulkUpdateCourse,
   deleteCourse,
   submitForApproval,
   approveCourse,

@@ -104,7 +104,7 @@ const TeacherQuizForm = () => {
         await createQuiz(payload).unwrap()
         showToast('Quiz created!', 'success')
       }
-      navigate(`/teacher/courses/${courseId}/quizzes`)
+      navigate(`/teacher/courses/${courseId}/edit`)
     } catch (err) {
       showToast(err?.data?.message || 'Save failed', 'danger')
     }

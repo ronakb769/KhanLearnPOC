@@ -36,6 +36,9 @@ const CourseCard = ({ course, isEnrolled, onEnroll }) => {
         </div>
       </div>
       <div className="card-footer bg-transparent border-top-0 pt-0 pb-3 px-3">
+        <div className="small text-muted text-truncate mb-2 border-top pt-2" style={{ fontSize: '0.7rem' }}>
+          {course.title}
+        </div>
         {isEnrolled ? (
           <div className="d-flex align-items-center gap-2">
             <span className="badge bg-success-subtle text-success border border-success-subtle">

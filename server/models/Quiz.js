@@ -21,13 +21,9 @@ const quizSchema = new mongoose.Schema(
     },
     questions: [
       {
-        _id: false,
-        id: { type: String },
         questionText: { type: String, required: true },
         options: [
           {
-            _id: false,
-            id: { type: String },
             text: { type: String, required: true },
             isCorrect: { type: Boolean, default: false }
           }

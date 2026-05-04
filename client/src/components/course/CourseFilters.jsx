@@ -9,7 +9,7 @@ const SORTS = [
 ]
 
 const CourseFilters = ({ filters = {}, onChange }) => {
-  const hasFilters = filters.search || filters.category || filters.level || (filters.sort && filters.sort !== 'newest')
+  const hasFilters = filters.search || filters.category || filters.level || filters.teacher || (filters.sort && filters.sort !== 'newest')
   return (
     <div className="d-flex flex-wrap align-items-center gap-3 py-3">
       <SearchBar
@@ -37,7 +37,7 @@ const CourseFilters = ({ filters = {}, onChange }) => {
       </select>
       {hasFilters && (
         <button className="btn btn-sm btn-outline-secondary"
-          onClick={() => onChange({ search: '', category: '', level: '', sort: 'newest', page: 1 })}>
+          onClick={() => onChange({ search: '', category: '', level: '', teacher: '', sort: 'newest', page: 1 })}>
           <i className="bi bi-x me-1" />Clear
         </button>
       )}

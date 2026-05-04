@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import {
   useGetLessonsByCourseQuery,
   useCreateLessonMutation,
@@ -115,6 +115,7 @@ const TeacherLessons = () => {
   const course = courseData?.data || courseData
   const lessons = data?.data?.lessons || data?.data || []
 
+  const navigate = useNavigate()
   const handleSave = async (form) => {
     try {
       if (formModal?._id) {
@@ -125,6 +126,7 @@ const TeacherLessons = () => {
         showToast('Lesson created!', 'success')
       }
       setFormModal(null)
+      navigate(`/teacher/courses/${courseId}/edit`)
     } catch (err) {
       showToast(err?.data?.message || 'Save failed', 'danger')
     }
