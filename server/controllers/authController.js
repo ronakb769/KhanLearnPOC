@@ -329,9 +329,79 @@ const resetPassword = asyncHandler(async (req, res) => {
   return success(res, {}, 'Password reset successful')
 })
 
+const { OAuth2Client } = require('google-auth-library')
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
+
+// POST /api/v1/auth/google-login
+const googleLogin = asyncHandler(async (req, res) => {
+  const { idToken } = req.body
+
+  if (!idToken) {
+    return error(res, 'ID Token is required', 400)
+  }
+
+  try {
+    const ticket = await client.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID
+    })
+
+    const { name, email, picture, sub: googleId } = ticket.getPayload()
+
+    let user = await User.findOne({ email })
+
+    if (!user) {
+      // Create new user if doesn't exist
+      user = await User.create({
+        name,
+        email,
+        password: crypto.randomBytes(16).toString('hex'), // Random password for social login
+        avatar: picture,
+        googleId,
+        role: 'student'
+      })
+    } else {
+      // Link googleId if not already linked
+      if (!user.googleId) {
+        user.googleId = googleId
+        if (!user.avatar) user.avatar = picture
+        await user.save({ validateBeforeSave: false })
+      }
+    }
+
+    if (!user.isActive) {
+      return error(res, 'Your account is deactivated', 401)
+    }
+
+    user.lastLogin = new Date()
+    const accessToken = generateAccessToken(user._id)
+    const refreshToken = generateRefreshToken(user._id)
+
+    user.refreshToken = refreshToken
+    await user.save({ validateBeforeSave: false })
+
+    res.cookie('refreshToken', refreshToken, COOKIE_OPTIONS)
+
+    return success(res, {
+      accessToken,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar
+      }
+    })
+  } catch (err) {
+    console.error('Google Auth Error:', err)
+    return error(res, 'Invalid Google token', 401)
+  }
+})
+
 module.exports = {
   register,
   login,
+  googleLogin,
   refresh,
   logout,
   getMe,

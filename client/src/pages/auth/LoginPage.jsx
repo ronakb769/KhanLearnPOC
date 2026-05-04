@@ -5,7 +5,8 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useDispatch } from 'react-redux';
 import { setCredentials } from '../../features/auth/authSlice';
-import { useLoginMutation } from '../../services/authApi';
+import { GoogleLogin } from '@react-oauth/google';
+import { useLoginMutation, useGoogleLoginMutation } from '../../services/authApi';
 import { useToast } from '../../hooks/useToast';
 
 const schema = yup.object({
@@ -18,6 +19,7 @@ export default function LoginPage() {
   const dispatch = useDispatch();
   const { showToast } = useToast();
   const [login, { isLoading }] = useLoginMutation();
+  const [googleLogin, { isLoading: isGoogleLoading }] = useGoogleLoginMutation();
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState('');
 
@@ -27,21 +29,25 @@ export default function LoginPage() {
     formState: { errors },
   } = useForm({ resolver: yupResolver(schema) });
 
+  const handleLoginSuccess = (user, accessToken) => {
+    dispatch(setCredentials({ user, accessToken }));
+    showToast(`Welcome back, ${user.name}!`, 'success');
+    
+    if (user.role === 'admin') {
+      navigate('/admin/dashboard');
+    } else if (user.role === 'teacher') {
+      navigate('/teacher/dashboard');
+    } else {
+      navigate('/student/dashboard');
+    }
+  };
+
   const onSubmit = async (data) => {
     setServerError('');
     try {
       const result = await login(data).unwrap();
       const { user, accessToken } = result.data || result;
-      dispatch(setCredentials({ user, accessToken }));
-      showToast(`Welcome back, ${user.name}!`, 'success');
-      
-      if (user.role === 'admin') {
-        navigate('/admin/dashboard');
-      } else if (user.role === 'teacher') {
-        navigate('/teacher/dashboard');
-      } else {
-        navigate('/student/dashboard');
-      }
+      handleLoginSuccess(user, accessToken);
     } catch (err) {
       console.error('Login error:', err);
       const msg = err?.data?.message || 'Invalid credentials. Please try again.';
@@ -50,9 +56,19 @@ export default function LoginPage() {
     }
   };
 
+  const handleGoogleSuccess = async (response) => {
+    try {
+      const result = await googleLogin({ idToken: response.credential }).unwrap();
+      const { user, accessToken } = result.data || result;
+      handleLoginSuccess(user, accessToken);
+    } catch (err) {
+      showToast(err?.data?.message || 'Google login failed', 'error');
+    }
+  };
+
   return (
     <div className="row g-0" style={{ minHeight: '100vh' }}>
-      {/* Left Panel — Branded */}
+      {/* ... Left Panel omitted for brevity ... */}
       <div
         className="col-md-5 d-none d-md-flex flex-column justify-content-between py-5 px-5 text-white"
         style={{ background: '#1d3557' }}
@@ -71,7 +87,6 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Testimonial */}
         <div
           className="card border-0 p-4 rounded-3"
           style={{ background: 'rgba(255,255,255,0.1)' }}
@@ -96,10 +111,8 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right Panel — Form */}
       <div className="col-md-7 d-flex align-items-center justify-content-center py-5 px-4 bg-white">
         <div style={{ width: '100%', maxWidth: 440 }}>
-          {/* Mobile logo */}
           <div className="d-flex d-md-none align-items-center gap-2 mb-4">
             <i className="bi bi-mortarboard-fill text-primary" style={{ fontSize: '2rem' }}></i>
             <span className="fw-bold fs-4">KhanLearn</span>
@@ -108,15 +121,7 @@ export default function LoginPage() {
           <h3 className="fw-bold mb-1">Welcome back</h3>
           <p className="text-muted mb-4">Sign in to continue your learning journey.</p>
 
-          {/* {serverError && (
-            <div className="alert alert-danger d-flex align-items-center gap-2" role="alert">
-              <i className="bi bi-exclamation-triangle-fill"></i>
-              {serverError}
-            </div>
-          )} */}
-
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
-            {/* Email */}
             <div className="mb-3">
               <label htmlFor="email" className="form-label fw-semibold">
                 Email address
@@ -134,7 +139,6 @@ export default function LoginPage() {
               )}
             </div>
 
-            {/* Password */}
             <div className="mb-3">
               <label htmlFor="password" className="form-label fw-semibold">
                 Password
@@ -162,7 +166,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Remember + Forgot */}
             <div className="d-flex justify-content-between align-items-center mb-4">
               <div className="form-check">
                 <input
@@ -180,11 +183,10 @@ export default function LoginPage() {
               </Link>
             </div>
 
-            {/* Submit */}
             <button
               type="submit"
               className="btn btn-primary w-100 btn-lg mb-3"
-              disabled={isLoading}
+              disabled={isLoading || isGoogleLoading}
             >
               {isLoading ? (
                 <>
@@ -196,21 +198,22 @@ export default function LoginPage() {
               )}
             </button>
 
-            {/* Divider */}
             <div className="d-flex align-items-center gap-2 my-3">
               <hr className="flex-grow-1" />
               <small className="text-muted">or continue with</small>
               <hr className="flex-grow-1" />
             </div>
 
-            {/* Google Placeholder */}
-            <button
-              type="button"
-              className="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center gap-2"
-            >
-              <i className="bi bi-google"></i>
-              Continue with Google
-            </button>
+            <div className="d-flex justify-content-center">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => showToast('Google Login Failed', 'error')}
+                useOneTap
+                theme="outline"
+                size="large"
+                width="440"
+              />
+            </div>
           </form>
 
           <p className="text-center mt-4 mb-0 text-muted small">

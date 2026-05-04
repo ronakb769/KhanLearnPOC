@@ -11,12 +11,15 @@ import './index.css'
 import { store } from './app/store'
 import App from './App'
 
+import { GoogleOAuthProvider } from '@react-oauth/google'
+
 ReactDOM.createRoot(document.getElementById('root')).render(
- 
+  <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
     <Provider store={store}>
       <BrowserRouter>
         <App />
         <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
       </BrowserRouter>
     </Provider>
+  </GoogleOAuthProvider>
 )

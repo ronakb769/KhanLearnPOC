@@ -60,9 +60,11 @@ export default function HomePage() {
                 <Link to={getDashboardRoute(user?.role)} className="btn btn-light btn-lg px-5 fw-semibold" style={{ color: '#1d3557' }}>
                   Go to Dashboard
                 </Link>
-                <Link to="/browse" className="btn btn-outline-light btn-lg px-5">
-                  Browse Courses
-                </Link>
+                {user?.role === 'student' && (
+                  <Link to="/browse" className="btn btn-outline-light btn-lg px-5">
+                    Browse Courses
+                  </Link>
+                )}
               </>
             ) : (
               <>

@@ -59,10 +59,6 @@ const Navbar = () => {
         <span className="fw-bold d-none d-sm-inline" style={{ color: 'var(--color-primary)', fontSize: '1.1rem' }}>KhanLearn</span>
       </Link>
 
-      <div className="d-none d-lg-flex align-items-center" style={{ gap: 4 }}>
-        <NavLink to="/" className={navLinkClass} end>Home</NavLink>
-        <NavLink to="/courses" className={navLinkClass}>Courses</NavLink>
-      </div>
 
       <div className="ms-auto d-flex align-items-center gap-2">
         {isAuthenticated && user ? (
