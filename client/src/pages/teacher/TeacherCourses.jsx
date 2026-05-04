@@ -25,9 +25,24 @@ const TeacherCourses = () => {
   const { showToast } = useToast()
 
   const [deleteTarget, setDeleteTarget] = useState(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [sortBy, setSortBy] = useState('newest')
 
-  
-  const courses = data?.data?.courses || data || []
+  const rawCourses = data?.data?.courses || data || []
+
+  // Filter and Sort logic
+  const filteredCourses = rawCourses
+    .filter((course) => 
+      course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.category.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (sortBy === 'newest') return new Date(b.createdAt) - new Date(a.createdAt)
+      if (sortBy === 'oldest') return new Date(a.createdAt) - new Date(b.createdAt)
+      if (sortBy === 'title') return a.title.localeCompare(b.title)
+      if (sortBy === 'students') return (b.enrollmentCount || 0) - (a.enrollmentCount || 0)
+      return 0
+    })
 
   const handleDelete = async () => {
     try {
@@ -62,16 +77,47 @@ const TeacherCourses = () => {
         </Link>
       </div>
 
-      {courses.length === 0 ? (
+      {/* Search and Sort Controls */}
+      <div className="row g-3 mb-4">
+        <div className="col-md-8">
+          <div className="input-group shadow-sm">
+            <span className="input-group-text bg-white border-end-0">
+              <i className="bi bi-search text-muted" />
+            </span>
+            <input
+              type="text"
+              className="form-control border-start-0 ps-0"
+              placeholder="Search by title or category..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="col-md-4">
+          <select 
+            className="form-select shadow-sm" 
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+          >
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="title">Title (A-Z)</option>
+            <option value="students">Most Popular</option>
+          </select>
+        </div>
+      </div>
+
+      {filteredCourses.length === 0 ? (
         <EmptyState
-          icon="bi-journal-plus"
-          title="No courses yet"
-          description="Create your first course to get started!"
-          actionLabel="Create Course"
-          actionTo="/teacher/courses/new"
+          icon={searchQuery ? "bi-search" : "bi-journal-plus"}
+          title={searchQuery ? "No matching courses" : "No courses yet"}
+          description={searchQuery ? "Try a different search term." : "Create your first course to get started!"}
+          actionLabel={searchQuery ? "Clear Search" : "Create Course"}
+          onAction={searchQuery ? () => setSearchQuery('') : undefined}
+          actionTo={searchQuery ? undefined : "/teacher/courses/new"}
         />
       ) : (
-        <div className="card shadow-sm">
+        <div className="card shadow-sm border-0">
           <div className="card-body p-0">
             <div className="table-responsive">
               <table className="table table-hover align-middle mb-0">
@@ -87,14 +133,14 @@ const TeacherCourses = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {courses.map((course) => (
+                  {filteredCourses.map((course) => (
                     <tr key={course._id}>
                       <td>
                         <div className="fw-semibold" style={{ maxWidth: 220 }}>{course.title}</div>
                       </td>
-                      <td><span className="badge bg-secondary">{course.category}</span></td>
+                      <td><span className="badge bg-secondary-subtle text-secondary border border-secondary-subtle">{course.category}</span></td>
                       <td>
-                        <span className={`badge bg-${STATUS_BADGE[course.status] || 'secondary'}`}>
+                        <span className={`badge bg-${STATUS_BADGE[course.status] || 'secondary'} bg-opacity-10 text-${STATUS_BADGE[course.status] || 'secondary'} border border-${STATUS_BADGE[course.status] || 'secondary'} border-opacity-25`}>
                           {course.status}
                         </span>
                       </td>

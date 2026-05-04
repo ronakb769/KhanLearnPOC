@@ -12,7 +12,6 @@ const NAV_ITEMS = {
     { to: '/teacher/dashboard', icon: 'bi-house-door-fill', label: 'Dashboard' },
     { to: '/teacher/courses', icon: 'bi-book-fill', label: 'My Courses' },
     { to: '/teacher/courses/new', icon: 'bi-plus-circle-fill', label: 'Create Course' },
-    { to: '/browse', icon: 'bi-compass-fill', label: 'Browse Courses' },
   ],
   admin: [
     { to: '/admin/dashboard', icon: 'bi-house-door-fill', label: 'Dashboard' },
