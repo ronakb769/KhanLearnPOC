@@ -10,10 +10,6 @@ export const authApi = createApi({
       query: (data) => ({ url: '/auth/login', method: 'POST', data }),
       invalidatesTags: ['Auth'],
     }),
-    googleLogin: builder.mutation({
-      query: (data) => ({ url: '/auth/google-login', method: 'POST', data }),
-      invalidatesTags: ['Auth'],
-    }),
     register: builder.mutation({
       query: (data) => ({ url: '/auth/register', method: 'POST', data }),
     }),
@@ -47,7 +43,6 @@ export const authApi = createApi({
 export const {
   useLoginMutation,
   useRegisterMutation,
-  useGoogleLoginMutation,
   useLogoutMutation,
   useRefreshMutation,
   useGetMeQuery,
