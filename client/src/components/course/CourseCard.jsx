@@ -48,12 +48,14 @@ const CourseCard = ({ course, isEnrolled, onEnroll }) => {
           </div>
         ) : (
           <div className="d-flex gap-2">
-            <Link to={`/courses/${course._id}`} className="btn btn-sm btn-outline-primary flex-fill">
+            <Link to={`/courses/${course._id}`} className={`btn btn-sm btn-outline-primary ${onEnroll ? 'flex-fill' : 'w-100'}`}>
               <i className="bi bi-eye me-1" />Details
             </Link>
-            <button className="btn btn-sm btn-primary flex-fill" onClick={() => onEnroll && onEnroll(course._id)}>
-              <i className="bi bi-person-plus me-1" />Enroll
-            </button>
+            {onEnroll && (
+              <button className="btn btn-sm btn-primary flex-fill" onClick={() => onEnroll(course._id)}>
+                <i className="bi bi-person-plus me-1" />Enroll
+              </button>
+            )}
           </div>
         )}
       </div>

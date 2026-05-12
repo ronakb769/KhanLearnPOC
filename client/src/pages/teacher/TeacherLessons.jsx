@@ -15,7 +15,7 @@ import { useToast } from '../../hooks/useToast'
 
 const PAGE_SIZE = 10
 
-const CONTENT_TYPES = ['video', 'article', 'pdf']
+const CONTENT_TYPES = ['video', 'article']
 
 const EMPTY_FORM = { title: '', contentType: 'article', content: '', duration: 0, order: 1 }
 

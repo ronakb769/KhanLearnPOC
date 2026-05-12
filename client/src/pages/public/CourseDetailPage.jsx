@@ -26,10 +26,19 @@ export default function CourseDetailPage() {
   const { data: enrollmentsData } = useGetMyEnrollmentsQuery(undefined, {
     skip: !isAuthenticated,
   });
-  
-  // Only fetch full detail if authenticated (instructor needs it too)
+
+  // Compute access early so we only call /full when the user is actually allowed
+  const enrollmentsEarly = enrollmentsData?.data?.enrollments || enrollmentsData?.data || enrollmentsData || [];
+  const isEnrolledEarly = Array.isArray(enrollmentsEarly) && enrollmentsEarly.some((e) => {
+    const cId = typeof e.course === 'object' ? e.course?._id : e.course;
+    return String(cId) === String(courseId) && e.status !== 'dropped';
+  });
+  const courseEarly = courseData?.data?.course || courseData?.data || null;
+  const teacherIdEarly = typeof courseEarly?.teacher === 'object' ? courseEarly?.teacher?._id : courseEarly?.teacher;
+  const hasAccessEarly = isEnrolledEarly || user?._id === teacherIdEarly || user?.role === 'admin';
+
   const { data: fullDetailData } = useGetCourseFullDetailQuery(courseId, {
-    skip: !isAuthenticated,
+    skip: !isAuthenticated || !hasAccessEarly,
   });
   
   const { data: quizzesData } = useGetQuizzesByCourseQuery(courseId);
@@ -86,7 +95,7 @@ export default function CourseDetailPage() {
       }));
 
   return (
-    <div className="d-flex flex-column min-vh-100" style={{ backgroundColor: '#fcfcfd' }}>
+    <div className="d-flex flex-column min-vh-100" style={{ backgroundColor: '#fcfcfd', paddingTop: 'var(--navbar-height)' }}>
       <Navbar />
 
       {/* Hero Header */}
@@ -125,7 +134,7 @@ export default function CourseDetailPage() {
               <div className="card border-0 shadow-lg rounded-4 overflow-hidden" style={{ position: 'sticky', top: 90, zIndex: 10 }}>
                 {course.thumbnail && <img src={course.thumbnail} alt={course.title} className="card-img-top" style={{ height: 220, objectFit: 'cover' }} />}
                 <div className="card-body p-4 bg-white">
-                  <div className="h2 fw-bold text-dark mb-4">{course.price === 0 ? 'Free' : `$${course.price}`}</div>
+                  <div className="h2 fw-bold text-dark mb-4">{!course.price ? 'Free' : `$${course.price}`}</div>
                   
                   {isInstructor ? (
                     <div className="d-grid gap-2">

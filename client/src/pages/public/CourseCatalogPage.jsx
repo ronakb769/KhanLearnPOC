@@ -18,6 +18,7 @@ export default function CourseCatalogPage() {
   const { showToast } = useToast();
   const auth = useSelector((s) => s.auth);
   const isAuthenticated = !!auth?.accessToken;
+  const isAdmin = auth?.user?.role === 'admin';
 
   const [filters, setFilters] = useState({
     search: searchParams.get('search') || '',
@@ -101,7 +102,7 @@ export default function CourseCatalogPage() {
   ].filter(Boolean);
 
   return (
-    <div className="d-flex flex-column min-vh-100">
+    <div className="d-flex flex-column min-vh-100" style={{ paddingTop: 'var(--navbar-height)' }}>
       <Navbar />
 
       {/* Sticky Filter Bar */}
@@ -159,7 +160,7 @@ export default function CourseCatalogPage() {
           <CourseGrid
             courses={courses}
             enrolledIds={enrolledIds}
-            onEnroll={handleEnroll}
+            onEnroll={isAdmin ? undefined : handleEnroll}
           />
         )}
 

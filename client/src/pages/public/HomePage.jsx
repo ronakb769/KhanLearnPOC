@@ -31,7 +31,7 @@ export default function HomePage() {
   const { isAuthenticated, user } = useSelector((s) => s.auth)
 
   return (
-    <div className="d-flex flex-column min-vh-100">
+    <div className="d-flex flex-column min-vh-100" style={{ paddingTop: 'var(--navbar-height)' }}>
       <Navbar />
 
       {/* ── Hero ── */}
