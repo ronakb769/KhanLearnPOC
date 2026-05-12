@@ -18,6 +18,7 @@ import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
 import ResetPasswordPage from './pages/auth/ResetPasswordPage'
+import GoogleAuthSuccess from './pages/auth/GoogleAuthSuccess'
 
 // Student pages
 import StudentDashboard from './pages/student/StudentDashboard'
@@ -67,6 +68,7 @@ const App = () => {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+      <Route path="/auth/google/success" element={<GoogleAuthSuccess />} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
       {/* Protected — all authenticated users */}

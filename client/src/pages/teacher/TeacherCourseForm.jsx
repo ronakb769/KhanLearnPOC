@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
-import { useCreateCourseMutation, useGetCourseByIdQuery, useBulkUpdateCourseMutation } from '../../services/courseApi'
+import { useCreateCourseMutation, useGetCourseByIdQuery, useBulkUpdateCourseMutation, useGetCoursesQuery } from '../../services/courseApi'
 import { useGetLessonsByCourseQuery } from '../../services/lessonApi'
 import { useGetQuizzesByCourseQuery } from '../../services/quizApi'
 import Loader from '../../components/common/Loader'
@@ -24,7 +24,9 @@ const TeacherCourseForm = () => {
   const { data: lessonsData, isLoading: lessonsLoading, refetch: refetchLessons } = useGetLessonsByCourseQuery(id, { skip: !isEdit })
   const { data: quizzesData, isLoading: quizzesLoading, refetch: refetchQuizzes } = useGetQuizzesByCourseQuery(id, { skip: !isEdit })
 
-  const [form, setForm] = useState({ title: '', description: '', category: '', level: 'Beginner', thumbnail: '', price: 0 })
+  const [form, setForm] = useState({ title: '', description: '', category: '', level: 'Beginner', thumbnail: '', price: 0, prerequisites: [] })
+  const { data: allCoursesData } = useGetCoursesQuery({ limit: 100, status: 'approved' })
+  const allCourses = allCoursesData?.data?.courses || []
   const [errors, setErrors] = useState({})
 
   // Local edited copies of lessons/quizzes
@@ -42,7 +44,15 @@ const TeacherCourseForm = () => {
   useEffect(() => {
     if (isEdit && courseData) {
       const c = courseData?.data?.course || courseData?.course || courseData?.data || courseData
-      setForm({ title: c.title || '', description: c.description || '', category: c.category || '', level: c.level || 'Beginner', thumbnail: c.thumbnail || '', price: c.price ?? 0 })
+      setForm({ 
+        title: c.title || '', 
+        description: c.description || '', 
+        category: c.category || '', 
+        level: c.level || 'Beginner', 
+        thumbnail: c.thumbnail || '', 
+        price: c.price ?? 0,
+        prerequisites: (c.prerequisites || []).map(p => typeof p === 'object' ? p._id : p)
+      })
     }
   }, [courseData, isEdit])
 
@@ -273,6 +283,51 @@ const TeacherCourseForm = () => {
                     <button key={level} type="button" className={`btn btn-sm px-3 rounded-pill border-2 ${form.level === level ? 'btn-primary' : 'btn-outline-secondary'}`} onClick={() => setForm(f => ({ ...f, level }))}>{level}</button>
                   ))}
                 </div>
+              </div>
+              <div className="mb-4">
+                <label className="form-label fw-semibold text-muted small text-uppercase">Prerequisite Courses</label>
+                <div className="dropdown">
+                  <button className="btn btn-outline-secondary w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" aria-expanded="false" style={{ borderRadius: '10px' }}>
+                    <span className="text-truncate">{form.prerequisites.length > 0 ? `${form.prerequisites.length} selected` : 'Select prerequisites...'}</span>
+                    <i className="bi bi-chevron-down small"></i>
+                  </button>
+                  <div className="dropdown-menu w-100 p-3 shadow border-0" style={{ maxHeight: '300px', overflowY: 'auto', borderRadius: '12px' }}>
+                    {allCourses.filter(c => c._id !== id).map(c => (
+                      <div key={c._id} className="form-check mb-2">
+                        <input 
+                          className="form-check-input" 
+                          type="checkbox" 
+                          id={`pre-${c._id}`} 
+                          checked={form.prerequisites.includes(c._id)}
+                          onChange={(e) => {
+                            const val = c._id
+                            setForm(f => ({
+                              ...f,
+                              prerequisites: e.target.checked 
+                                ? [...f.prerequisites, val] 
+                                : f.prerequisites.filter(p => p !== val)
+                            }))
+                          }}
+                        />
+                        <label className="form-check-label small" htmlFor={`pre-${c._id}`}>{c.title}</label>
+                      </div>
+                    ))}
+                    {allCourses.filter(c => c._id !== id).length === 0 && <div className="text-muted small text-center py-2">No other courses available</div>}
+                  </div>
+                </div>
+                {form.prerequisites.length > 0 && (
+                  <div className="d-flex flex-wrap gap-1 mt-2">
+                    {form.prerequisites.map(pId => {
+                      const c = allCourses.find(x => x._id === pId)
+                      return (
+                        <span key={pId} className="badge bg-light text-dark border d-flex align-items-center gap-1 py-2 px-2" style={{ borderRadius: '6px' }}>
+                          <span className="text-truncate" style={{ maxWidth: '150px' }}>{c?.title || 'Unknown'}</span>
+                          <i className="bi bi-x-lg text-danger" style={{ cursor: 'pointer' }} onClick={() => setForm(f => ({ ...f, prerequisites: f.prerequisites.filter(p => p !== pId) }))}></i>
+                        </span>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
               <div>
                 <label className="form-label fw-semibold text-muted small text-uppercase">Price (USD)</label>

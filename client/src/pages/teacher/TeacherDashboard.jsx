@@ -179,13 +179,13 @@ const TeacherDashboard = () => {
                               >
                                 <i className="bi bi-pencil" />
                               </Link>
-                              <Link
+                              {/* <Link
                                 to={`/teacher/courses/${course._id}/lessons`}
                                 className="btn btn-sm btn-outline-secondary"
                                 title="Manage Lessons"
                               >
                                 <i className="bi bi-list-ol" />
-                              </Link>
+                              </Link> */}
                             </div>
                           </td>
                         </tr>

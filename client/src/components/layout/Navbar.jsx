@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { NavLink, Link, useNavigate } from 'react-router-dom'
+import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom'
 import { clearCredentials } from '../../features/auth/authSlice'
 import { setSidebarCollapsed } from '../../features/ui/uiSlice'
 import { useLogoutMutation } from '../../services/authApi'
@@ -10,6 +10,7 @@ import { getDashboardRoute } from '../../utils/formatters'
 const Navbar = () => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
+  const location = useLocation()
   const { user, isAuthenticated } = useSelector((s) => s.auth)
   const { sidebarCollapsed } = useSelector((s) => s.ui)
   const [logout] = useLogoutMutation()
@@ -43,7 +44,7 @@ const Navbar = () => {
 
   return (
     <nav className="navbar-custom d-flex align-items-center px-3 px-md-4 w-100" style={{ gap: 12 }}>
-      {isAuthenticated && (
+      {isAuthenticated && location.pathname !== '/' && (
         <button
           className="btn btn-link text-dark p-1 me-1 d-flex align-items-center"
           onClick={() => dispatch(setSidebarCollapsed(!sidebarCollapsed))}

@@ -8,8 +8,11 @@ import {
 import Loader from '../../components/common/Loader'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import EmptyState from '../../components/common/EmptyState'
+import Pagination from '../../components/common/Pagination'
 import { useToast } from '../../hooks/useToast'
 import { formatDate } from '../../utils/formatters'
+
+const PAGE_SIZE = 10
 
 const STATUS_BADGE = {
   draft: 'secondary',
@@ -25,12 +28,13 @@ const TeacherCourses = () => {
   const { showToast } = useToast()
 
   const [deleteTarget, setDeleteTarget] = useState(null)
-  
+
   // Advanced Filter & Sort State
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [sortConfig, setSortConfig] = useState({ key: 'createdAt', direction: 'desc' })
+  const [page, setPage] = useState(1)
 
   const rawCourses = data?.data?.courses || data || []
 
@@ -65,6 +69,9 @@ const TeacherCourses = () => {
         return 0
       })
   }, [rawCourses, searchQuery, statusFilter, categoryFilter, sortConfig])
+
+  const totalPages = Math.ceil(filteredCourses.length / PAGE_SIZE)
+  const pagedCourses = filteredCourses.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   const requestSort = (key) => {
     let direction = 'asc'
@@ -130,7 +137,7 @@ const TeacherCourses = () => {
                   className="form-control border-0 ps-1 py-2 shadow-none"
                   placeholder="Filter by name, keywords..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => { setSearchQuery(e.target.value); setPage(1) }}
                 />
               </div>
             </div>
@@ -142,7 +149,7 @@ const TeacherCourses = () => {
                 <select 
                   className="form-select form-select-sm border-0 bg-light rounded-3 shadow-none fw-semibold" 
                   value={categoryFilter}
-                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  onChange={(e) => { setCategoryFilter(e.target.value); setPage(1) }}
                 >
                   <option value="all">All Categories</option>
                   {categories.filter(c => c !== 'all').map(c => <option key={c} value={c}>{c}</option>)}
@@ -157,7 +164,7 @@ const TeacherCourses = () => {
                 <select 
                   className="form-select form-select-sm border-0 bg-light rounded-3 shadow-none fw-semibold" 
                   value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
+                  onChange={(e) => { setStatusFilter(e.target.value); setPage(1) }}
                 >
                   <option value="all">All Status</option>
                   {Object.keys(STATUS_BADGE).map(s => <option key={s} value={s} className="text-capitalize">{s}</option>)}
@@ -168,7 +175,7 @@ const TeacherCourses = () => {
             {/* Reset */}
             {(searchQuery || statusFilter !== 'all' || categoryFilter !== 'all') && (
               <div className="col-auto ms-auto">
-                <button className="btn btn-link btn-sm text-decoration-none text-muted fw-bold" onClick={() => { setSearchQuery(''); setStatusFilter('all'); setCategoryFilter('all'); }}>
+                <button className="btn btn-link btn-sm text-decoration-none text-muted fw-bold" onClick={() => { setSearchQuery(''); setStatusFilter('all'); setCategoryFilter('all'); setPage(1) }}>
                   Clear all
                 </button>
               </div>
@@ -184,7 +191,7 @@ const TeacherCourses = () => {
           title="No results matching your filters"
           description="Try adjusting your search terms or filters to find what you're looking for."
           actionLabel="Reset all filters"
-          onAction={() => { setSearchQuery(''); setStatusFilter('all'); setCategoryFilter('all'); }}
+          onAction={() => { setSearchQuery(''); setStatusFilter('all'); setCategoryFilter('all'); setPage(1) }}
         />
       ) : (
         <div className="card border-0 shadow-sm rounded-4 overflow-hidden">
@@ -222,7 +229,7 @@ const TeacherCourses = () => {
                   </tr>
                 </thead>
                 <tbody className="border-top-0">
-                  {filteredCourses.map((course) => (
+                  {pagedCourses.map((course) => (
                     <tr key={course._id}>
                       <td className="ps-4 py-3">
                         <div className="d-flex align-items-center">
@@ -271,6 +278,14 @@ const TeacherCourses = () => {
               </table>
             </div>
           </div>
+          {totalPages > 1 && (
+            <div className="card-footer bg-white d-flex justify-content-between align-items-center py-3">
+              <small className="text-muted">
+                Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filteredCourses.length)} of {filteredCourses.length}
+              </small>
+              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+            </div>
+          )}
         </div>
       )}
 

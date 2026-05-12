@@ -55,7 +55,13 @@ const courseSchema = new mongoose.Schema(
     totalDuration: {
       type: Number,
       default: 0
-    }
+    },
+    prerequisites: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Course'
+      }
+    ]
   },
   { timestamps: true }
 )

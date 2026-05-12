@@ -159,6 +159,25 @@ export default function CourseDetailPage() {
                         <i className="bi bi-award text-primary fs-5"></i> Certificate of completion
                       </li>
                     </ul>
+
+                    {course.prerequisites?.length > 0 && (
+                      <div className="mt-4 pt-4 border-top">
+                        <h6 className="fw-bold mb-3 small text-uppercase text-danger">
+                          <i className="bi bi-exclamation-triangle-fill me-2"></i>Prerequisites:
+                        </h6>
+                        <ul className="list-unstyled mb-0 d-grid gap-2">
+                          {course.prerequisites.map(pre => (
+                            <li key={pre._id} className="d-flex align-items-center gap-2 small text-dark fw-medium">
+                              <i className="bi bi-check-circle text-muted"></i>
+                              <Link to={`/courses/${pre._id}`} className="text-decoration-none hover-primary">{pre.title}</Link>
+                            </li>
+                          ))}
+                        </ul>
+                        <p className="mt-3 mb-0 text-muted" style={{ fontSize: '0.75rem' }}>
+                          You must complete these courses before you can enroll.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

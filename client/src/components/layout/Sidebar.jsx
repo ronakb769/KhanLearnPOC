@@ -73,16 +73,16 @@ const Sidebar = () => {
       </nav>
 
       {/* Collapse button */}
-      <div className="position-absolute bottom-0 w-100 border-top border-white border-opacity-10 p-2">
+      {/* <div className="position-absolute bottom-0 w-100 border-top border-white border-opacity-10 p-2">
         <button
           className="btn btn-link text-white w-100 d-flex align-items-center justify-content-center"
           onClick={() => dispatch(setSidebarCollapsed(!sidebarCollapsed))}
           title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           <i className={`bi ${sidebarCollapsed ? 'bi-chevron-double-right' : 'bi-chevron-double-left'}`} />
-          <span className="sidebar-text ms-2 small">Collapse</span>
+
         </button>
-      </div>
+      </div> */}
     </div>
   )
 }

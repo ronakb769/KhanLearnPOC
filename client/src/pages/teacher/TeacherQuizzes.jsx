@@ -8,8 +8,11 @@ import { useGetCourseByIdQuery } from '../../services/courseApi'
 import Loader from '../../components/common/Loader'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import EmptyState from '../../components/common/EmptyState'
+import Pagination from '../../components/common/Pagination'
 import { useToast } from '../../hooks/useToast'
 import { formatDate } from '../../utils/formatters'
+
+const PAGE_SIZE = 10
 
 const TeacherQuizzes = () => {
   const { id: courseId } = useParams()
@@ -19,9 +22,12 @@ const TeacherQuizzes = () => {
   const { data, isLoading } = useGetQuizzesByCourseQuery(courseId)
   const [deleteQuiz, { isLoading: deleting }] = useDeleteQuizMutation()
   const [deleteTarget, setDeleteTarget] = useState(null)
+  const [page, setPage] = useState(1)
 
   const course = courseData?.data || courseData
   const quizzes = data?.data?.quizzes || data?.data || []
+  const totalPages = Math.ceil(quizzes.length / PAGE_SIZE)
+  const pagedQuizzes = quizzes.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   const handleDelete = async () => {
     try {
@@ -80,7 +86,7 @@ const TeacherQuizzes = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {quizzes.map((quiz) => (
+                  {pagedQuizzes.map((quiz) => (
                     <tr key={quiz._id}>
                       <td className="fw-semibold">{quiz.title}</td>
                       <td className="text-center">{quiz.questions?.length ?? 0}</td>
@@ -110,6 +116,14 @@ const TeacherQuizzes = () => {
               </table>
             </div>
           </div>
+          {totalPages > 1 && (
+            <div className="card-footer bg-white d-flex justify-content-between align-items-center py-3">
+              <small className="text-muted">
+                Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, quizzes.length)} of {quizzes.length}
+              </small>
+              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+            </div>
+          )}
         </div>
       )}
 

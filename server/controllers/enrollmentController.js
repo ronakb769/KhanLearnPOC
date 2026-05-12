@@ -15,6 +15,26 @@ const enroll = asyncHandler(async (req, res) => {
   const existing = await Enrollment.findOne({ student: req.user._id, course: courseId })
   if (existing && existing.status === 'active') return error(res, 'Already enrolled in this course', 409)
 
+  // Prerequisite check
+  if (course.prerequisites && course.prerequisites.length > 0) {
+    const completions = await Enrollment.find({
+      student: req.user._id,
+      course: { $in: course.prerequisites },
+      status: 'completed'
+    }).populate('course', 'title')
+
+    if (completions.length < course.prerequisites.length) {
+      const completedIds = completions.map(c => c.course._id.toString())
+      const missingIds = course.prerequisites.filter(pId => !completedIds.includes(pId.toString()))
+      
+      // Fetch missing course titles if not already available
+      const missingCourses = await Course.find({ _id: { $in: missingIds } }, 'title')
+      const missingTitles = missingCourses.map(c => c.title).join(', ')
+      
+      return error(res, `You must complete the following course(s) before enrolling: ${missingTitles}`, 403)
+    }
+  }
+
   let enrollment
   if (existing) {
     existing.status = 'active'

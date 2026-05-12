@@ -10,7 +10,10 @@ import { useGetCourseByIdQuery } from '../../services/courseApi'
 import Loader from '../../components/common/Loader'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import EmptyState from '../../components/common/EmptyState'
+import Pagination from '../../components/common/Pagination'
 import { useToast } from '../../hooks/useToast'
+
+const PAGE_SIZE = 10
 
 const CONTENT_TYPES = ['video', 'article', 'pdf']
 
@@ -111,9 +114,13 @@ const TeacherLessons = () => {
 
   const [formModal, setFormModal] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
+  const [page, setPage] = useState(1)
 
   const course = courseData?.data || courseData
   const lessons = data?.data?.lessons || data?.data || []
+  const sortedLessons = lessons.slice().sort((a, b) => (a.order || 0) - (b.order || 0))
+  const totalPages = Math.ceil(sortedLessons.length / PAGE_SIZE)
+  const pagedLessons = sortedLessons.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   const navigate = useNavigate()
   const handleSave = async (form) => {
@@ -190,10 +197,7 @@ const TeacherLessons = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {lessons
-                    .slice()
-                    .sort((a, b) => (a.order || 0) - (b.order || 0))
-                    .map((lesson) => (
+                  {pagedLessons.map((lesson) => (
                       <tr key={lesson._id}>
                         <td className="text-muted">{lesson.order}</td>
                         <td className="fw-semibold">{lesson.title}</td>
@@ -217,6 +221,14 @@ const TeacherLessons = () => {
               </table>
             </div>
           </div>
+          {totalPages > 1 && (
+            <div className="card-footer bg-white d-flex justify-content-between align-items-center py-3">
+              <small className="text-muted">
+                Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, sortedLessons.length)} of {sortedLessons.length}
+              </small>
+              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+            </div>
+          )}
         </div>
       )}
 

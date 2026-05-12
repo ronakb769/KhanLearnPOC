@@ -1,11 +1,19 @@
 const jwt = require('jsonwebtoken')
 const crypto = require('crypto')
+const { OAuth2Client } = require('google-auth-library')
 const User = require('../models/User')
 const asyncHandler = require('../utils/asyncHandler')
 const { success, error } = require('../utils/apiResponse')
 const { generateAccessToken, generateRefreshToken } = require('../utils/generateTokens')
 const sendEmail = require('../utils/sendEmail')
-const { log } = require('console')
+
+const GOOGLE_CALLBACK_URL = 'http://localhost:5000/api/v1/auth/google/callback'
+
+const getGoogleClient = () => new OAuth2Client(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  GOOGLE_CALLBACK_URL
+)
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
@@ -329,84 +337,87 @@ const resetPassword = asyncHandler(async (req, res) => {
   return success(res, {}, 'Password reset successful')
 })
 
-const { OAuth2Client } = require('google-auth-library')
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
+// GET /api/v1/auth/google
+const googleAuth = asyncHandler(async (req, res) => {
+  const client = getGoogleClient()
+  const url = client.generateAuthUrl({
+    access_type: 'offline',
+    scope: [
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/userinfo.profile',
+    ],
+    prompt: 'select_account',
+  })
+  res.redirect(url)
+})
 
-// POST /api/v1/auth/google-login
-const googleLogin = asyncHandler(async (req, res) => {
-  const { idToken } = req.body
+// GET /api/v1/auth/google/callback
+const googleCallback = asyncHandler(async (req, res) => {
+  const { code, error: oauthError } = req.query
+  const clientUrl = process.env.CLIENT_URL || 'http://localhost:5175'
 
-  if (!idToken) {
-    return error(res, 'ID Token is required', 400)
+  if (oauthError || !code) {
+    return res.redirect(`${clientUrl}/login?error=google_denied`)
   }
 
-  try {
-    const ticket = await client.verifyIdToken({
-      idToken,
-      audience: process.env.GOOGLE_CLIENT_ID
+  const client = getGoogleClient()
+  const { tokens } = await client.getToken(code)
+  client.setCredentials(tokens)
+
+  const ticket = await client.verifyIdToken({
+    idToken: tokens.id_token,
+    audience: process.env.GOOGLE_CLIENT_ID,
+  })
+
+  const { email, name, picture } = ticket.getPayload()
+
+  let user = await User.findOne({ email })
+
+  if (!user) {
+    user = await User.create({
+      name,
+      email,
+      password: crypto.randomBytes(32).toString('hex'),
+      avatar: picture || '',
+      role: 'student',
     })
-
-    const { name, email, picture, sub: googleId } = ticket.getPayload()
-
-    let user = await User.findOne({ email })
-
-    if (!user) {
-      // Create new user if doesn't exist
-      user = await User.create({
-        name,
-        email,
-        password: crypto.randomBytes(16).toString('hex'), // Random password for social login
-        avatar: picture,
-        googleId,
-        role: 'student'
-      })
-    } else {
-      // Link googleId if not already linked
-      if (!user.googleId) {
-        user.googleId = googleId
-        if (!user.avatar) user.avatar = picture
-        await user.save({ validateBeforeSave: false })
-      }
-    }
-
-    if (!user.isActive) {
-      return error(res, 'Your account is deactivated', 401)
-    }
-
-    user.lastLogin = new Date()
-    const accessToken = generateAccessToken(user._id)
-    const refreshToken = generateRefreshToken(user._id)
-
-    user.refreshToken = refreshToken
-    await user.save({ validateBeforeSave: false })
-
-    res.cookie('refreshToken', refreshToken, COOKIE_OPTIONS)
-
-    return success(res, {
-      accessToken,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        avatar: user.avatar
-      }
-    })
-  } catch (err) {
-    console.error('Google Auth Error:', err)
-    return error(res, 'Invalid Google token', 401)
+  } else {
+    if (!user.avatar && picture) user.avatar = picture
   }
+
+  if (!user.isActive) {
+    return res.redirect(`${clientUrl}/login?error=account_deactivated`)
+  }
+
+  const accessToken = generateAccessToken(user._id)
+  const refreshToken = generateRefreshToken(user._id)
+  user.refreshToken = refreshToken
+  user.lastLogin = new Date()
+  await user.save({ validateBeforeSave: false })
+
+  res.cookie('refreshToken', refreshToken, COOKIE_OPTIONS)
+
+  const userInfo = encodeURIComponent(JSON.stringify({
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    avatar: user.avatar,
+  }))
+
+  res.redirect(`${clientUrl}/auth/google/success?token=${accessToken}&user=${userInfo}`)
 })
 
 module.exports = {
   register,
   login,
-  googleLogin,
   refresh,
   logout,
   getMe,
   updateProfile,
   updatePassword,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  googleAuth,
+  googleCallback,
 }

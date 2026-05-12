@@ -49,13 +49,13 @@ const AdminCourses = () => {
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [rejectTarget, setRejectTarget] = useState(null)
 
-  const { data, isLoading, isFetching } = useGetCoursesQuery({ search, page, limit: 20, status: statusFilter, all: true })
+  const { data, isLoading, isFetching } = useGetCoursesQuery({ search, page, limit: 10, status: statusFilter, all: true })
   const [approveCourse, { isLoading: approving }] = useApproveCourseMutation()
   const [rejectCourse, { isLoading: rejecting }] = useRejectCourseMutation()
   const [deleteCourse, { isLoading: deleting }] = useDeleteCourseMutation()
 
   const courses = data?.data?.courses || data?.data || []
-  const totalPages = data?.data?.totalPages || data?.totalPages || 1
+  const totalPages = data?.data?.pages || data?.data?.totalPages || 1
 
   const handleApprove = async (id) => {
     try {
@@ -186,8 +186,11 @@ const AdminCourses = () => {
             </div>
           )}
         </div>
-        {totalPages > 1 && (
-          <div className="card-footer bg-white d-flex justify-content-center">
+        {(data?.data?.total ?? 0) > 0 && (
+          <div className="card-footer bg-white d-flex justify-content-between align-items-center py-3">
+            <small className="text-muted">
+              Showing {(page - 1) * 10 + 1}–{Math.min(page * 10, data?.data?.total ?? 0)} of {data?.data?.total ?? 0} courses
+            </small>
             <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
           </div>
         )}

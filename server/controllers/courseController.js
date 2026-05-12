@@ -59,7 +59,9 @@ const getCourses = asyncHandler(async (req, res) => {
 
 // GET /api/v1/courses/:id
 const getCourseById = asyncHandler(async (req, res) => {
-  const course = await Course.findById(req.params.id).populate('teacher', 'name avatar bio')
+  const course = await Course.findById(req.params.id)
+    .populate('teacher', 'name avatar bio')
+    .populate('prerequisites', 'title')
   if (!course) return error(res, 'Course not found', 404)
 
   const [lessonCount, enrollmentCount] = await Promise.all([
@@ -72,7 +74,9 @@ const getCourseById = asyncHandler(async (req, res) => {
 
 // GET /api/v1/courses/:id/full  (requires auth)
 const getCourseFullDetail = asyncHandler(async (req, res) => {
-  const course = await Course.findById(req.params.id).populate('teacher', 'name avatar bio')
+  const course = await Course.findById(req.params.id)
+    .populate('teacher', 'name avatar bio')
+    .populate('prerequisites', 'title')
   if (!course) return error(res, 'Course not found', 404)
 
   const isOwner = course.teacher._id.toString() === req.user._id.toString()
@@ -105,7 +109,7 @@ const getCourseFullDetail = asyncHandler(async (req, res) => {
 
 // POST /api/v1/courses
 const createCourse = asyncHandler(async (req, res) => {
-  const { title, description, category, level, thumbnail, tags, lessons = [], quizzes = [] } = req.body
+  const { title, description, category, level, thumbnail, tags, lessons = [], quizzes = [], prerequisites = [] } = req.body
 
   const course = await Course.create({
     title,
@@ -114,6 +118,7 @@ const createCourse = asyncHandler(async (req, res) => {
     level,
     thumbnail,
     tags,
+    prerequisites,
     teacher: req.user._id,
     status: 'pending'
   })
@@ -250,9 +255,10 @@ const bulkUpdateCourse = asyncHandler(async (req, res) => {
   }
 
   // Update course basic info
+  const { prerequisites = [] } = req.body
   const updatedCourse = await Course.findByIdAndUpdate(
     req.params.id,
-    { title, description, category, level, thumbnail, price, status: 'pending' },
+    { title, description, category, level, thumbnail, price, prerequisites, status: 'pending' },
     { new: true, runValidators: true }
   )
 

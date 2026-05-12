@@ -20,12 +20,12 @@ const AdminUsers = () => {
   const [roleFilter, setRoleFilter] = useState('')
   const [deleteTarget, setDeleteTarget] = useState(null)
 
-  const { data, isLoading, isFetching } = useGetUsersQuery({ search, page, limit: 20, role: roleFilter })
+  const { data, isLoading, isFetching } = useGetUsersQuery({ search, page, limit: 10, role: roleFilter })
   const [updateStatus, { isLoading: toggling }] = useUpdateUserStatusMutation()
   const [deleteUser, { isLoading: deleting }] = useDeleteUserMutation()
 
   const users = data?.data?.users || data?.data || []
-  const totalPages = data?.data?.totalPages || data?.totalPages || 1
+  const totalPages = data?.data?.pages || data?.data?.totalPages || 1
 
   const handleToggleStatus = async (user) => {
     try {
@@ -137,8 +137,11 @@ const AdminUsers = () => {
             </div>
           )}
         </div>
-        {totalPages > 1 && (
-          <div className="card-footer bg-white d-flex justify-content-center">
+        {(data?.data?.total ?? 0) > 0 && (
+          <div className="card-footer bg-white d-flex justify-content-between align-items-center py-3">
+            <small className="text-muted">
+              Showing {(page - 1) * 10 + 1}–{Math.min(page * 10, data?.data?.total ?? 0)} of {data?.data?.total ?? 0} users
+            </small>
             <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
           </div>
         )}

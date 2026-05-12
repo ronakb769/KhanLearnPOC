@@ -22,7 +22,7 @@ const BrowseCoursesPage = () => {
     level: searchParams.get('level') || '',
     sort: searchParams.get('sort') || 'newest',
     page: parseInt(searchParams.get('page') || '1', 10),
-    limit: 9,
+    limit: 10,
   })
 
   useEffect(() => {

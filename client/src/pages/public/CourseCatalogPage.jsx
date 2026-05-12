@@ -26,7 +26,7 @@ export default function CourseCatalogPage() {
     teacher: searchParams.get('teacher') || '',
     sort: searchParams.get('sort') || 'newest',
     page: parseInt(searchParams.get('page') || '1', 10),
-    limit: 9,
+    limit: 10,
   });
 
   // Sync URL → state when searchParams change externally
